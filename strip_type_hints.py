@@ -14,7 +14,7 @@ class TypeHintRemover(ast.NodeTransformer):
         return node
 
     def visit_ClassDef(self, node):
-        node.type_params = None
+        node.type_params = []
         new_bases = []
         for base in node.bases:
             if isinstance(base, ast.Subscript):
@@ -34,6 +34,17 @@ class TypeHintRemover(ast.NodeTransformer):
 
     def visit_ImportFrom(self, node):
         return node if node.module != 'typing' else None
+
+    def visit_Assign(self, node):
+        # Remove T = TypeVar('T') assignments
+        if (len(node.targets) == 1 and 
+            isinstance(node.targets[0], ast.Name) and 
+            node.targets[0].id == 'T' and
+            isinstance(node.value, ast.Call) and
+            isinstance(node.value.func, ast.Name) and
+            node.value.func.id == 'TypeVar'):
+            return None
+        return node
 
 def remove_type_hints(source: str) -> str:
     parsed = ast.parse(source)
