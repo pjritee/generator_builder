@@ -23,6 +23,7 @@ Support for building generators that could, for example, be used to drive PWM LE
 """
 import sys
 import random
+from pytest import TestShortLogReport
 
 
 class GeneratorBuilder:
@@ -99,50 +100,26 @@ class AlwaysRepeater(GeneratorBuilder):
             yield from self.generator()
 
 
+class Tester:
+    """A base class for generating testers to be used in TakeWhile"""
+
+    def __call__(self):
+        raise NotImplementedError('Subclasses must implement __call__')
+
+
 class TakeWhile(GeneratorBuilder):
     """A class that, when called, returns a generator that yields from the supplied generator
     while the supplied condition is true."""
 
-    def __init__(self, condition, generator):
-        self.condition = condition
+    def __init__(self, tester, generator):
+        self.tester = tester
         self.generator = generator
 
     def _generate(self):
         g = self.generator()
-        while self.condition():
+        test = self.tester()
+        while test():
             yield next(g)
-
-
-class Timer(GeneratorBuilder):
-    """A class that, when called, returns a generator that yields from the supplied generator
-    for a specified duration in seconds."""
-
-    def __init__(self, duration, generator, time_func):
-        self.duration = duration
-        self.generator = generator
-        self.time_func = time_func
-
-    def _generate(self):
-        start_time = self.time_func()
-        g = self.generator()
-        while self.time_func() - start_time < self.duration:
-            yield next(g)
-
-
-class CountedTakeWhile(GeneratorBuilder):
-    """A class that, when called, returns a generator that yields from the supplied generator
-    until a specified count is reached."""
-
-    def __init__(self, count, generator):
-        self.count = count
-        self.generator = generator
-
-    def _generate(self):
-        g = self.generator()
-        current_count = 0
-        while current_count < self.count:
-            yield next(g)
-            current_count += 1
 
 
 if __name__ == '__main__':
@@ -188,6 +165,23 @@ if __name__ == '__main__':
             for i in range(self.steps):
                 yield self.amplitude * math.sin(2 * math.pi * self.
                     frequency * i / self.steps)
+
+
+    class CountTester(Tester):
+        """A tester that returns True while a counter is below a limit."""
+
+        def __init__(self, limit):
+            self.limit = limit
+            self.count = 0
+
+        def __call__(self):
+            self.count = 0
+
+            def test_fun() ->bool:
+                result = self.count < self.limit
+                self.count += 1
+                return result
+            return test_fun
     print('Testing generator builders...')
     print('\n1. Testing sequencer:')
     seq_gen = Sequencer([ConstantGen(1.0), RampGen(0.0, 1.0, 5),
@@ -231,17 +225,11 @@ if __name__ == '__main__':
             break
     print(f'Always repeater output (first 5): {values}')
     print('\n6. Testing take_while:')
-    counter = [0]
-
-    def stopping_condition():
-        print(counter)
-        return counter[0] < 3
-    take_while_gen = TakeWhile(stopping_condition, ConstantGen(1.0))
+    tester = CountTester(3)
+    take_while_gen = TakeWhile(tester, ConstantGen(1.0))
     values = []
     for val in take_while_gen():
-        print(counter[0])
         values.append(val)
-        counter[0] += 1
     print(f'Take while output (while counter < 3): {values}')
     print('\n7. Testing sine_wave_gen:')
     sine_gen = SineWaveGen(amplitude=1.0, frequency=1.0, steps=10)
@@ -250,10 +238,16 @@ if __name__ == '__main__':
         values.append(round(val, 2))
     print(f'Sine wave output (first 10 steps): {values}')
     print('\n8. Testing inheritance and callable interface:')
+
+
+    class AlwaysTrueTester(Tester):
+
+        def __call__(self):
+            return True
     generators = [Sequencer([ConstantGen(1.0)]), Chooser([ConstantGen(1.0)]
         ), Repeater(1, ConstantGen(1.0)), RandomRepeater(100, ConstantGen(
-        1.0)), AlwaysRepeater(ConstantGen(1.0)), TakeWhile(lambda : True,
-        ConstantGen(1.0)), ConstantGen(1.0), RampGen(0.0, 1.0, 5),
+        1.0)), AlwaysRepeater(ConstantGen(1.0)), TakeWhile(AlwaysTrueTester
+        (), ConstantGen(1.0)), ConstantGen(1.0), RampGen(0.0, 1.0, 5),
         SineWaveGen()]
     for gen in generators:
         print(
