@@ -30,8 +30,6 @@ import random
 # so we skip type checking support when running in MicroPython
 # The following two lines are removed when strip_type_hints.py is run
 from typing import Generator, TypeVar, Callable
-
-from pytest import TestShortLogReport 
 T = TypeVar('T')
 
 
