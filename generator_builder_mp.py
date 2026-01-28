@@ -23,7 +23,7 @@ Support for building generators that could, for example, be used to drive PWM LE
 """
 import sys
 import random
-from numpy import take
+import time
 
 
 class GeneratorBuilder:
@@ -38,7 +38,7 @@ class GeneratorBuilder:
 
 class Sequencer(GeneratorBuilder):
     """A class that, when called, returns a generator that iterates through the supplied list of generators,
-    yielding from each in turn."""
+    yielding from each in turn. Note that each generator (except possibly the last one) should be finite."""
 
     def __init__(self, generators):
         self.generators = generators
@@ -61,7 +61,7 @@ class Chooser(GeneratorBuilder):
 
 class Repeater(GeneratorBuilder):
     """A class that, when called, returns a generator that yields from the supplied generator
-    the supplied number of times."""
+    the supplied number of times. Note that the supplied generator should be finite."""
 
     def __init__(self, number, generator):
         self.number = number
@@ -77,7 +77,7 @@ class Repeater(GeneratorBuilder):
 
 class RandomRepeater(GeneratorBuilder):
     """A class that, when called, returns a generator that yields from the supplied generator
-    repeatedly with the supplied probability."""
+    repeatedly with the supplied probability. Note that the supplied generator should be finite."""
 
     def __init__(self, probability, generator):
         self.probability = probability
@@ -90,7 +90,7 @@ class RandomRepeater(GeneratorBuilder):
 
 class AlwaysRepeater(GeneratorBuilder):
     """A class that, when called, returns a generator that yields from the supplied generator
-    forever."""
+    forever. Note that the supplied generator should be finite."""
 
     def __init__(self, generator):
         self.generator = generator
@@ -122,18 +122,73 @@ class TakeWhile(GeneratorBuilder):
             yield next(g)
 
 
+class Constant(GeneratorBuilder):
+    """A class that, when called, returns a generator that yields a constant value
+    indefinitely."""
+
+    def __init__(self, value):
+        """value - the constant value to yield"""
+        self.value = value
+
+    def _generate(self):
+        while True:
+            yield self.value
+
+
+class ConstantFor(GeneratorBuilder):
+    """A class that, when called, returns a generator that yields a constant value
+    for a specified number of steps."""
+
+    def __init__(self, value, steps):
+        """value - the constant value to yield
+        steps - the number of steps (yielded values)"""
+        self.value = value
+        self.steps = steps
+
+    def _generate(self):
+        for _ in range(self.steps):
+            yield self.value
+
+
+class CountTester(Tester):
+    """A tester that returns True while a counter is below a limit."""
+
+    def __init__(self, limit):
+        self.limit = limit
+        self.count = 0
+
+    def __call__(self):
+        self.count = 0
+
+        def test_fun() ->bool:
+            result = self.count < self.limit
+            self.count += 1
+            return result
+        return test_fun
+
+
+class TimeoutTester(Tester):
+    """A tester that returns True while elapsed time is below a limit."""
+
+    def __init__(self, limit_seconds):
+        self.limit_seconds = limit_seconds
+
+    def _get_time(self):
+        """Override this method if running in an environment with a different time API"""
+        if 'micropython' in sys.modules:
+            return mp_time.ticks_ms() / 1000.0
+        else:
+            return time.time()
+
+    def __call__(self):
+        start_time = self._get_time()
+
+        def test_fun() ->bool:
+            return self._get_time() - start_time < self.limit_seconds
+        return test_fun
+
+
 if __name__ == '__main__':
-
-
-    class ConstantGen(GeneratorBuilder):
-        """A simple generator that always yields the same value."""
-
-        def __init__(self, value):
-            self.value = value
-
-        def _generate(self):
-            while True:
-                yield self.value
 
 
     class RampGen(GeneratorBuilder):
@@ -167,35 +222,28 @@ if __name__ == '__main__':
                     frequency * i / self.steps)
 
 
-    class CountTester(Tester):
-        """A tester that returns True while a counter is below a limit."""
-
-        def __init__(self, limit):
-            self.limit = limit
-            self.count = 0
+    class AlwaysTrueTester(Tester):
+        """A tester that always returns True."""
 
         def __call__(self):
-            self.count = 0
 
             def test_fun() ->bool:
-                result = self.count < self.limit
-                self.count += 1
-                return result
+                return True
             return test_fun
     print('Testing generator builders...')
     print('\n1. Testing take_while:')
     tester = CountTester(3)
-    take_while_gen = TakeWhile(tester, ConstantGen(1.0))
+    take_while_gen = TakeWhile(tester, Constant(1.0))
     values = []
     for val in take_while_gen():
         values.append(val)
     print(f'Take while output (while counter < 3): {values}')
-    take_while_1 = TakeWhile(tester, ConstantGen(1.0))
-    take_while_2 = TakeWhile(tester, ConstantGen(2.0))
-    take_while_3 = TakeWhile(tester, ConstantGen(3.0))
+    take_while_1 = TakeWhile(CountTester(3), Constant(1.0))
+    take_while_2 = TakeWhile(CountTester(3), Constant(2.0))
+    take_while_3 = TakeWhile(CountTester(3), Constant(3.0))
     print('\n2. Testing sequencer:')
-    seq_gen = Sequencer([TakeWhile(tester, ConstantGen(1.0)), TakeWhile(
-        tester, RampGen(0.0, 1.0, 5)), ConstantGen(0.01)])
+    seq_gen = Sequencer([TakeWhile(CountTester(3), Constant(1.0)),
+        TakeWhile(CountTester(5), RampGen(0.0, 1.0, 5)), ConstantFor(0.01, 1)])
     values = []
     for i, val in enumerate(seq_gen()):
         values.append(round(val, 2))
@@ -242,17 +290,11 @@ if __name__ == '__main__':
         values.append(round(val, 2))
     print(f'Sine wave output (first 10 steps): {values}')
     print('\n8. Testing inheritance and callable interface:')
-
-
-    class AlwaysTrueTester(Tester):
-
-        def __call__(self):
-            return True
-    generators = [Sequencer([ConstantGen(1.0)]), Chooser([ConstantGen(1.0)]
-        ), Repeater(1, ConstantGen(1.0)), RandomRepeater(100, ConstantGen(
-        1.0)), AlwaysRepeater(ConstantGen(1.0)), TakeWhile(AlwaysTrueTester
-        (), ConstantGen(1.0)), ConstantGen(1.0), RampGen(0.0, 1.0, 5),
-        SineWaveGen()]
+    generators = [Sequencer([Constant(1.0)]), Chooser([Constant(1.0)]),
+        Repeater(1, Constant(1.0)), RandomRepeater(100, Constant(1.0)),
+        AlwaysRepeater(Constant(1.0)), TakeWhile(AlwaysTrueTester(),
+        Constant(1.0)), Constant(1.0), ConstantFor(1.0, 5), RampGen(0.0, 
+        1.0, 5), SineWaveGen()]
     for gen in generators:
         print(
             f'{gen.__class__.__name__}: isinstance(GeneratorBuilder) = {isinstance(gen, GeneratorBuilder)}'

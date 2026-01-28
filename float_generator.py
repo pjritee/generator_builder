@@ -127,8 +127,16 @@ if __name__ == "__main__":
     print(f"SineWave (10 steps): {[round(v, 2) for v in values]}")
     assert len(values) == 10
     assert all(0.0 <= v <= 1.0 for v in values)
+
+    print('\n2. Testing SineWave with step range:')
+    sine_rand = SineWave((5,15))
+    for _ in range(3):        
+        values = list(sine_rand())
+    print(f'SineWave output: {[round(v, 2) for v in values]}')
+    assert 5 <= len(values) <= 15
+    assert all(0.0 <= v <= 1.0 for v in values)
     
-    print("\n2. Testing SawtoothWave:")
+    print("\n3. Testing SawtoothWave:")
     sawtooth_gen = SawtoothWave(10)
     values = list(sawtooth_gen())
     print(f"SawtoothWave output: {[round(v, 2) for v in values]}")
@@ -136,7 +144,14 @@ if __name__ == "__main__":
     assert all(0.0 <= v <= 1.0 for v in values)
     assert 1.0 in values and 0.0 in values
     
-    print("\n3. Testing SquareWave:")
+    print('\n4. Testing SawtoothWave with step range:')
+    sawtooth_rand = SawtoothWave((8,16))
+    values = list(sawtooth_rand())
+    print(f'SawtoothWave output: {[round(v, 2) for v in values]}')
+    assert 8 <= len(values) <= 16
+    assert all(0.0 <= v <= 1.0 for v in values) 
+
+    print("\n5. Testing SquareWave:")
     square_gen = SquareWave(10)
     values = list(square_gen())
     print(f"SquareWave output: {values}")
@@ -146,26 +161,36 @@ if __name__ == "__main__":
     low_count = sum(1 for v in values if v == 0.0)
     assert high_count == low_count
     
-    print("\n4. Testing Constant:")
-    const_gen = Constant(0.5)
+    print('\n6. Testing SquareWave with step range:')
+    square_rand = SquareWave((6,12))
+    values = list(square_rand())
+    print(f'SquareWave output: {values}')
+    assert 6 <= len(values) <= 12
+    assert all(v in [0.0, 1.0] for v in values)
+    high_count = sum(1 for v in values if v == 1.0)
+    low_count = sum(1 for v in values if v == 0.0)
+    assert high_count == low_count
+
+    print("\n7. Testing Constant:")
+    const_gen = gb.Constant(0.5)
     values = [next(const_gen()) for _ in range(5)]
     print(f"Constant (0.5): {values}")
     assert all(v == 0.5 for v in values)
     
-    print("\n5. Testing ConstantFor:")
-    const_for_gen = ConstantFor(0.75, 5)
+    print("\n8. Testing ConstantFor:")
+    const_for_gen = gb.ConstantFor(0.75, 5)
     values = list(const_for_gen())
     print(f"ConstantFor (0.75, 5 steps): {values}")
     assert len(values) == 5
     assert all(v == 0.75 for v in values)
     
-    print("\n6. Testing value ranges:")
+    print("\n9. Testing value ranges:")
     generators = [
         ("SineWave", SineWave(100)),
         ("SawtoothWave", SawtoothWave(100)),
         ("SquareWave", SawtoothWave(100)),
-        ("Constant", Constant(0.3)),
-        ("ConstantFor", ConstantFor(0.7, 100))
+        ("Constant", gb.Constant(0.3)),
+        ("ConstantFor", gb.ConstantFor(0.7, 100))
     ]
     
     for name, gen_builder in generators:
@@ -177,30 +202,6 @@ if __name__ == "__main__":
             assert 0.0 <= value <= 1.0, f"{name} produced value {value} outside [0,1]"
         print(f"{name}: All values in [0,1]")
     
-    print("\n7. Testing invalid Constant values:")
-    try:
-        Constant(-0.1)
-        assert False, "Should reject negative value"
-    except ValueError as e:
-        print(f"Correctly rejected negative: {e}")
     
-    try:
-        Constant(1.1)
-        assert False, "Should reject value > 1"
-    except ValueError as e:
-        print(f"Correctly rejected > 1: {e}")
-    
-    print("\n8. Testing invalid ConstantFor values:")
-    try:
-        ConstantFor(-0.1, 5)
-        assert False, "Should reject negative value"
-    except ValueError as e:
-        print(f"Correctly rejected negative: {e}")
-    
-    try:
-        ConstantFor(1.5, 5)
-        assert False, "Should reject value > 1"
-    except ValueError as e:
-        print(f"Correctly rejected > 1: {e}")
     
     print("\nAll tests completed!")

@@ -31,7 +31,6 @@ import time
 # The following two lines are removed when strip_type_hints.py is run
 from typing import Generator, TypeVar, Callable
 
-from numpy import take
 T = TypeVar('T')
 
 
@@ -45,7 +44,7 @@ class GeneratorBuilder[T]:
 
 class Sequencer[T](GeneratorBuilder[T]):
     """A class that, when called, returns a generator that iterates through the supplied list of generators,
-    yielding from each in turn."""
+    yielding from each in turn. Note that each generator (except possibly the last one) should be finite."""
     def __init__(self, generators: list[Callable[[], Generator[T,None,None]]]):
         self.generators = generators
     
@@ -64,7 +63,7 @@ class Chooser[T](GeneratorBuilder[T]):
 
 class Repeater[T](GeneratorBuilder[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
-    the supplied number of times."""
+    the supplied number of times. Note that the supplied generator should be finite."""
     def __init__(self, number: int, generator: Callable[[], Generator[T,None,None]]):
         self.number = number
         self.generator = generator
@@ -78,7 +77,7 @@ class Repeater[T](GeneratorBuilder[T]):
 
 class RandomRepeater[T](GeneratorBuilder[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
-    repeatedly with the supplied probability."""
+    repeatedly with the supplied probability. Note that the supplied generator should be finite."""
     def __init__(self, probability: int, generator: Callable[[], Generator[T,None,None]]):
         self.probability = probability
         self.generator = generator
@@ -89,7 +88,7 @@ class RandomRepeater[T](GeneratorBuilder[T]):
 
 class AlwaysRepeater[T](GeneratorBuilder[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
-    forever."""
+    forever. Note that the supplied generator should be finite."""
     def __init__(self, generator: Callable[[], Generator[T,None,None]]):
         self.generator = generator
     
@@ -169,7 +168,9 @@ class TimeoutTester(Tester):
             return mp_time.ticks_ms() / 1000.0
         else:
             return time.time()
-    def __call__(self) -> Callable[[], bool]:   
+    def __call__(self) -> Callable[[], bool]:
+        # reset start time each time __call__ is invoked as part of a fresh
+        # use of a TakeWhile generator   
         start_time = self._get_time()
         def test_fun() -> bool:
             return (self._get_time() - start_time) < self.limit_seconds

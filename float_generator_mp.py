@@ -22,8 +22,9 @@ SOFTWARE.
 A collection of basic generator builders that yield floats in the range [0,1] that, 
 for example, could be used to drive PWM LEDs.
 """
-import generator_builder as gb
+import generator_builder_mp as gb
 import math
+import random
 
 
 class SineWave(gb.GeneratorBuilder):
@@ -31,12 +32,19 @@ class SineWave(gb.GeneratorBuilder):
     sine wave pattern in the range [0,1] for one cycle."""
 
     def __init__(self, steps):
-        """steps - the number of steps (yielded values) in the sine wave cycle"""
+        """steps - the number of steps (yielded values) in the sine wave cycle if
+        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created."""
         self.steps = steps
+        self.is_random = isinstance(steps, tuple)
 
     def _generate(self):
-        step_slice = 2 * math.pi / self.steps
-        for i in range(self.steps):
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])
+        else:
+            num_steps = self.steps
+        step_slice = 2 * math.pi / num_steps
+        for i in range(num_steps):
             yield (math.sin(i * step_slice) + 1) / 2
 
 
@@ -45,12 +53,19 @@ class SawtoothWave(gb.GeneratorBuilder):
     sawtooth wave pattern in the range [0,1] for one cycle."""
 
     def __init__(self, steps):
-        """steps - the number of steps (yielded values) in the sawtooth wave cycle.
+        """steps - the number of steps (yielded values) in the sawtooth wave cycle if
+        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created.
         steps is changed to 1 + (steps//4)*4 in order to simplify the implementation."""
-        self.quater_steps = steps // 4
+        self.steps = steps
+        self.is_random = isinstance(steps, tuple)
 
     def _generate(self):
-        quater_steps = self.quater_steps
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])
+        else:
+            num_steps = self.steps
+        quater_steps = num_steps // 4
         delta = 0.5 / quater_steps
         value = 0.5
         yield value
@@ -75,48 +90,23 @@ class SquareWave(gb.GeneratorBuilder):
     square wave pattern in the range [0,1] for one cycle."""
 
     def __init__(self, steps):
-        """steps - the number of steps (yielded values) in the square wave cycle.
+        """steps - the number of steps (yielded values) in the square wave cycle if an integer is provided. 
+        If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created..
         steps is rounded up to the nearest multiple of 2 in order to simplify the implementation."""
-        self.steps = (steps + 1) // 2 * 2
+        self.steps = steps
+        self.is_random = isinstance(steps, tuple)
 
     def _generate(self):
-        half_steps = self.steps // 2
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])
+        else:
+            num_steps = self.steps
+        half_steps = (num_steps + 1) // 2
         for i in range(half_steps):
             yield 1.0
         for i in range(half_steps):
             yield 0.0
-
-
-class Constant(gb.GeneratorBuilder):
-    """A class that, when called, returns a generator that yields a constant value
-    indefinitely."""
-
-    def __init__(self, value):
-        """value - the constant value to yield"""
-        if not 0.0 <= value <= 1.0:
-            raise ValueError('Constant value must be in the range [0,1]')
-        self.value = value
-
-    def _generate(self):
-        while True:
-            yield self.value
-
-
-class ConstantFor(gb.GeneratorBuilder):
-    """A class that, when called, returns a generator that yields a constant value
-    for a specified number of steps."""
-
-    def __init__(self, value, steps):
-        """value - the constant value to yield
-        steps - the number of steps (yielded values)"""
-        if not 0.0 <= value <= 1.0:
-            raise ValueError('ConstantFor value must be in the range [0,1]')
-        self.value = value
-        self.steps = steps
-
-    def _generate(self):
-        for _ in range(self.steps):
-            yield self.value
 
 
 if __name__ == '__main__':
@@ -127,14 +117,27 @@ if __name__ == '__main__':
     print(f'SineWave (10 steps): {[round(v, 2) for v in values]}')
     assert len(values) == 10
     assert all(0.0 <= v <= 1.0 for v in values)
-    print('\n2. Testing SawtoothWave:')
+    print('\n2. Testing SineWave with step range:')
+    sine_rand = SineWave((5, 15))
+    for _ in range(3):
+        values = list(sine_rand())
+    print(f'SineWave output: {[round(v, 2) for v in values]}')
+    assert 5 <= len(values) <= 15
+    assert all(0.0 <= v <= 1.0 for v in values)
+    print('\n3. Testing SawtoothWave:')
     sawtooth_gen = SawtoothWave(10)
     values = list(sawtooth_gen())
     print(f'SawtoothWave output: {[round(v, 2) for v in values]}')
     assert len(values) == 9
     assert all(0.0 <= v <= 1.0 for v in values)
     assert 1.0 in values and 0.0 in values
-    print('\n3. Testing SquareWave:')
+    print('\n4. Testing SawtoothWave with step range:')
+    sawtooth_rand = SawtoothWave((8, 16))
+    values = list(sawtooth_rand())
+    print(f'SawtoothWave output: {[round(v, 2) for v in values]}')
+    assert 8 <= len(values) <= 16
+    assert all(0.0 <= v <= 1.0 for v in values)
+    print('\n5. Testing SquareWave:')
     square_gen = SquareWave(10)
     values = list(square_gen())
     print(f'SquareWave output: {values}')
@@ -143,21 +146,30 @@ if __name__ == '__main__':
     high_count = sum(1 for v in values if v == 1.0)
     low_count = sum(1 for v in values if v == 0.0)
     assert high_count == low_count
-    print('\n4. Testing Constant:')
-    const_gen = Constant(0.5)
+    print('\n6. Testing SquareWave with step range:')
+    square_rand = SquareWave((6, 12))
+    values = list(square_rand())
+    print(f'SquareWave output: {values}')
+    assert 6 <= len(values) <= 12
+    assert all(v in [0.0, 1.0] for v in values)
+    high_count = sum(1 for v in values if v == 1.0)
+    low_count = sum(1 for v in values if v == 0.0)
+    assert high_count == low_count
+    print('\n7. Testing Constant:')
+    const_gen = gb.Constant(0.5)
     values = [next(const_gen()) for _ in range(5)]
     print(f'Constant (0.5): {values}')
     assert all(v == 0.5 for v in values)
-    print('\n5. Testing ConstantFor:')
-    const_for_gen = ConstantFor(0.75, 5)
+    print('\n8. Testing ConstantFor:')
+    const_for_gen = gb.ConstantFor(0.75, 5)
     values = list(const_for_gen())
     print(f'ConstantFor (0.75, 5 steps): {values}')
     assert len(values) == 5
     assert all(v == 0.75 for v in values)
-    print('\n6. Testing value ranges:')
+    print('\n9. Testing value ranges:')
     generators = [('SineWave', SineWave(100)), ('SawtoothWave',
         SawtoothWave(100)), ('SquareWave', SawtoothWave(100)), ('Constant',
-        Constant(0.3)), ('ConstantFor', ConstantFor(0.7, 100))]
+        gb.Constant(0.3)), ('ConstantFor', gb.ConstantFor(0.7, 100))]
     for name, gen_builder in generators:
         gen = gen_builder()
         limit = 100
@@ -166,26 +178,4 @@ if __name__ == '__main__':
                 break
             assert 0.0 <= value <= 1.0, f'{name} produced value {value} outside [0,1]'
         print(f'{name}: All values in [0,1]')
-    print('\n7. Testing invalid Constant values:')
-    try:
-        Constant(-0.1)
-        assert False, 'Should reject negative value'
-    except ValueError as e:
-        print(f'Correctly rejected negative: {e}')
-    try:
-        Constant(1.1)
-        assert False, 'Should reject value > 1'
-    except ValueError as e:
-        print(f'Correctly rejected > 1: {e}')
-    print('\n8. Testing invalid ConstantFor values:')
-    try:
-        ConstantFor(-0.1, 5)
-        assert False, 'Should reject negative value'
-    except ValueError as e:
-        print(f'Correctly rejected negative: {e}')
-    try:
-        ConstantFor(1.5, 5)
-        assert False, 'Should reject value > 1'
-    except ValueError as e:
-        print(f'Correctly rejected > 1: {e}')
     print('\nAll tests completed!')
