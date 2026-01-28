@@ -21,9 +21,9 @@ SOFTWARE.
 
 Support for building generators that could, for example, be used to drive PWM LEDs
 """
-
 import sys
 import random
+import time
 
 # These generators are intended to be generally useful and so for writing the implementation
 # we use type hints that would be valid in standard Python. However this is not supported in MicroPython
@@ -116,18 +116,67 @@ class TakeWhile[T](GeneratorBuilder[T]):
         while test():
             yield next(g)
 
+class Constant[T](GeneratorBuilder[T]):
+    """A class that, when called, returns a generator that yields a constant value
+    indefinitely."""
 
+    def __init__(self, value: T):
+        """value - the constant value to yield"""
+        self.value = value
+
+    def _generate(self) -> Generator[T, None, None]:
+        while True:
+            yield self.value
+
+class ConstantFor[T](GeneratorBuilder[T]):
+    """A class that, when called, returns a generator that yields a constant value
+    for a specified number of steps."""
+
+    def __init__(self, value: T, steps: int):
+        """value - the constant value to yield
+        steps - the number of steps (yielded values)"""
+        self.value = value
+        self.steps = steps
+
+    def _generate(self) -> Generator[T, None, None]:
+        for _ in range(self.steps):
+            yield self.value
+
+class CountTester(Tester):
+        """A tester that returns True while a counter is below a limit."""
+        def __init__(self, limit: int):
+            self.limit = limit
+            self.count = 0
+        
+        def __call__(self) -> Callable[[], bool]:
+            # reset count each time __call__ is invoked as part of a fresh
+            # use of a TakeWhile generator
+            self.count = 0  
+            def test_fun() -> bool:
+                result = self.count < self.limit
+                self.count += 1
+                return result
+            return test_fun
+        
+class TimeoutTester(Tester):
+    """A tester that returns True while elapsed time is below a limit."""
+    def __init__(self, limit_seconds: float):
+        self.limit_seconds = limit_seconds
+    
+    def _get_time(self) -> float:
+        """Override this method if running in an environment with a different time API"""
+        if 'micropython' in sys.modules:
+            return mp_time.ticks_ms() / 1000.0
+        else:
+            return time.time()
+    def __call__(self) -> Callable[[], bool]:   
+        start_time = self._get_time()
+        def test_fun() -> bool:
+            return (self._get_time() - start_time) < self.limit_seconds
+        return test_fun
 
 # Test code and example usage
 if __name__ == "__main__":
-    class ConstantGen(GeneratorBuilder[float]):
-        """A simple generator that always yields the same value."""
-        def __init__(self, value: float):
-            self.value = value
-        
-        def _generate(self) -> Generator[float, None, None]:
-            while True:
-                yield self.value
     
     class RampGen(GeneratorBuilder[float]):
         """A generator that yields values from start to end in steps."""
@@ -155,42 +204,32 @@ if __name__ == "__main__":
             for i in range(self.steps):
                 yield self.amplitude * math.sin(2 * math.pi * self.frequency * i / self.steps)
     
-    class CountTester(Tester):
-        """A tester that returns True while a counter is below a limit."""
-        def __init__(self, limit: int):
-            self.limit = limit
-            self.count = 0
-        
+    class AlwaysTrueTester(Tester):
+        """A tester that always returns True."""
         def __call__(self) -> Callable[[], bool]:
-            # reset count each time __call__ is invoked as part of a fresh
-            # use of a TakeWhile generator
-            self.count = 0  
             def test_fun() -> bool:
-                result = self.count < self.limit
-                self.count += 1
-                return result
+                return True
             return test_fun
-    
+        
     print("Testing generator builders...")
 
     print("\n1. Testing take_while:")
     tester = CountTester(3)
-    take_while_gen = TakeWhile(tester, ConstantGen(1.0))
+    take_while_gen = TakeWhile(tester, Constant(1.0))
     values = []
     for val in take_while_gen():
         values.append(val)
     print(f"Take while output (while counter < 3): {values}")
     
-    take_while_1 = TakeWhile(tester, ConstantGen(1.0))
-    take_while_2 = TakeWhile(tester, ConstantGen(2.0))
-    take_while_3 = TakeWhile(tester, ConstantGen(3.0))
-
+    take_while_1 = TakeWhile(CountTester(3), Constant(1.0))
+    take_while_2 = TakeWhile(CountTester(3), Constant(2.0))
+    take_while_3 = TakeWhile(CountTester(3), Constant(3.0))
 
     print("\n2. Testing sequencer:")
     seq_gen = Sequencer([
-        TakeWhile(tester, ConstantGen(1.0)),
-        TakeWhile(tester, RampGen(0.0, 1.0, 5)),
-        ConstantGen(0.01)
+        TakeWhile(CountTester(3), Constant(1.0)),
+        TakeWhile(CountTester(5), RampGen(0.0, 1.0, 5)),
+        ConstantFor(0.01, 1)
     ])
     values = []
     for i, val in enumerate(seq_gen()):
@@ -198,7 +237,6 @@ if __name__ == "__main__":
         if len(values) >= 10:  # Limit output
             break
     print(f"Sequencer output: {values}")
-    
     
     print("\n3. Testing repeater:")
     repeat_gen = Repeater(3, RampGen(0.0, 1.0, 3))
@@ -241,7 +279,6 @@ if __name__ == "__main__":
             break
     print(f"Always repeater output (first 20): {values}")
     
-    
     print("\n7. Testing sine_wave_gen:")
     sine_gen = SineWaveGen(amplitude=1.0, frequency=1.0, steps=10)
     values = []
@@ -250,18 +287,15 @@ if __name__ == "__main__":
     print(f"Sine wave output (first 10 steps): {values}")
     
     print("\n8. Testing inheritance and callable interface:")
-    class AlwaysTrueTester(Tester):
-        def __call__(self) -> bool:
-            return True
-    
     generators = [
-        Sequencer([ConstantGen(1.0)]),
-        Chooser([ConstantGen(1.0)]),
-        Repeater(1, ConstantGen(1.0)),
-        RandomRepeater(100, ConstantGen(1.0)),
-        AlwaysRepeater(ConstantGen(1.0)),
-        TakeWhile(AlwaysTrueTester(), ConstantGen(1.0)),
-        ConstantGen(1.0),
+        Sequencer([Constant(1.0)]),
+        Chooser([Constant(1.0)]),
+        Repeater(1, Constant(1.0)),
+        RandomRepeater(100, Constant(1.0)),
+        AlwaysRepeater(Constant(1.0)),
+        TakeWhile(AlwaysTrueTester(), Constant(1.0)),
+        Constant(1.0),
+        ConstantFor(1.0, 5),
         RampGen(0.0, 1.0, 5),
         SineWaveGen()
     ]

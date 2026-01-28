@@ -24,31 +24,47 @@ for example, could be used to drive PWM LEDs.
 """
 import generator_builder as gb
 import math
+import random
+from typing import Generator
 
 class SineWave(gb.GeneratorBuilder[float]):
     """A class that, when called, returns a generator that yields values in a 
     sine wave pattern in the range [0,1] for one cycle."""
 
-    def __init__(self, steps: int):
-        """steps - the number of steps (yielded values) in the sine wave cycle"""
+    def __init__(self, steps: int | tuple[int, int]):
+        """steps - the number of steps (yielded values) in the sine wave cycle if
+        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created."""
         self.steps = steps
-
-    def _generate(self):
-        step_slice = 2 * math.pi / self.steps
-        for i in range(self.steps):
+        self.is_random = isinstance(steps, tuple)
+    
+    def _generate(self) -> Generator[float, None, None]:
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])
+        else:
+            num_steps = self.steps
+        step_slice = 2 * math.pi / num_steps
+        for i in range(num_steps):
             yield (math.sin(i*step_slice) + 1) / 2  # Normalize to [0, 1]
 
 class SawtoothWave(gb.GeneratorBuilder[float]):
     """A class that, when called, returns a generator that yields values in a 
     sawtooth wave pattern in the range [0,1] for one cycle."""
 
-    def __init__(self, steps: int):
-        """steps - the number of steps (yielded values) in the sawtooth wave cycle.
+    def __init__(self, steps: int | tuple[int, int]):
+        """steps - the number of steps (yielded values) in the sawtooth wave cycle if
+        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created.
         steps is changed to 1 + (steps//4)*4 in order to simplify the implementation."""
-        self.quater_steps = steps//4
+        self.steps = steps
+        self.is_random = isinstance(steps, tuple)
 
-    def _generate(self):
-        quater_steps = self.quater_steps
+    def _generate(self) -> Generator[float, None, None]:
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])
+        else:
+            num_steps = self.steps
+        quater_steps = (num_steps // 4)
         delta = 0.5 / quater_steps 
         value = 0.5
         yield value
@@ -77,13 +93,21 @@ class SquareWave(gb.GeneratorBuilder[float]):
     """A class that, when called, returns a generator that yields values in a 
     square wave pattern in the range [0,1] for one cycle."""
 
-    def __init__(self, steps: int):
-        """steps - the number of steps (yielded values) in the square wave cycle.
+    def __init__(self, steps: int | tuple[int, int]):
+        """steps - the number of steps (yielded values) in the square wave cycle if an integer is provided. 
+        If a tuple is provided, it is interpreted as (min_steps, max_steps)
+        and a random number of steps in that range is chosen each time the generator is created..
         steps is rounded up to the nearest multiple of 2 in order to simplify the implementation."""
-        self.steps = ((steps+1)//2)*2  # Round up to nearest multiple of 2
+        self.steps = steps
+        self.is_random = isinstance(steps, tuple)
 
-    def _generate(self):
-        half_steps = self.steps // 2
+    def _generate(self) -> Generator[float, None, None]:
+        if self.is_random:
+            num_steps = random.randint(self.steps[0], self.steps[1])    
+        else:
+            num_steps = self.steps
+        
+        half_steps = (num_steps+1) // 2
         # High state
         for i in range(half_steps):
             yield 1.0
@@ -92,35 +116,7 @@ class SquareWave(gb.GeneratorBuilder[float]):
             yield 0.0
 
 
-class Constant(gb.GeneratorBuilder[float]):
-    """A class that, when called, returns a generator that yields a constant value
-    indefinitely."""
 
-    def __init__(self, value: float):
-        """value - the constant value to yield"""
-        if not (0.0 <= value <= 1.0):
-            raise ValueError("Constant value must be in the range [0,1]")
-        self.value = value
-
-    def _generate(self):
-        while True:
-            yield self.value
-
-class ConstantFor(gb.GeneratorBuilder[float]):
-    """A class that, when called, returns a generator that yields a constant value
-    for a specified number of steps."""
-
-    def __init__(self, value: float, steps: int):
-        """value - the constant value to yield
-        steps - the number of steps (yielded values)"""
-        if not (0.0 <= value <= 1.0):
-            raise ValueError("ConstantFor value must be in the range [0,1]")
-        self.value = value
-        self.steps = steps
-
-    def _generate(self):
-        for _ in range(self.steps):
-            yield self.value
 
 if __name__ == "__main__":
     print("Testing float generators...")
@@ -207,4 +203,4 @@ if __name__ == "__main__":
     except ValueError as e:
         print(f"Correctly rejected > 1: {e}")
     
-    print("\nAll tests completed!")    
+    print("\nAll tests completed!")

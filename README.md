@@ -1,5 +1,7 @@
 # Generator Builder
 
+__Notice__: In progress - more generators to be added and an example that drives PWM LEDs.
+
 A small collection of generator-builder utilities and helpers for creating
 reusable Python generator components (for example, to drive PWM LEDs). This project 
 evolved from the PWM example in the `RPi-Pico` repository.

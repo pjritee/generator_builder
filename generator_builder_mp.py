@@ -23,6 +23,7 @@ Support for building generators that could, for example, be used to drive PWM LE
 """
 import sys
 import random
+from numpy import take
 
 
 class GeneratorBuilder:
@@ -182,31 +183,42 @@ if __name__ == '__main__':
                 return result
             return test_fun
     print('Testing generator builders...')
-    print('\n1. Testing sequencer:')
-    seq_gen = Sequencer([ConstantGen(1.0), RampGen(0.0, 1.0, 5),
-        ConstantGen(0.5)])
+    print('\n1. Testing take_while:')
+    tester = CountTester(3)
+    take_while_gen = TakeWhile(tester, ConstantGen(1.0))
+    values = []
+    for val in take_while_gen():
+        values.append(val)
+    print(f'Take while output (while counter < 3): {values}')
+    take_while_1 = TakeWhile(tester, ConstantGen(1.0))
+    take_while_2 = TakeWhile(tester, ConstantGen(2.0))
+    take_while_3 = TakeWhile(tester, ConstantGen(3.0))
+    print('\n2. Testing sequencer:')
+    seq_gen = Sequencer([TakeWhile(tester, ConstantGen(1.0)), TakeWhile(
+        tester, RampGen(0.0, 1.0, 5)), ConstantGen(0.01)])
     values = []
     for i, val in enumerate(seq_gen()):
         values.append(round(val, 2))
         if len(values) >= 10:
             break
     print(f'Sequencer output: {values}')
-    print('\n2. Testing chooser:')
-    choose_gen = Chooser([ConstantGen(1.0), ConstantGen(2.0), ConstantGen(3.0)]
-        )
-    values = []
-    for i in range(10):
-        val = next(choose_gen())
-        values.append(val)
-    print(f'Chooser output (10 random choices): {values}')
     print('\n3. Testing repeater:')
     repeat_gen = Repeater(3, RampGen(0.0, 1.0, 3))
     values = []
     for val in repeat_gen():
         values.append(round(val, 2))
     print(f'Repeater output (3 times): {values}')
-    print('\n4. Testing random_repeater:')
-    random_repeat_gen = RandomRepeater(50, ConstantGen(1.0))
+    print('\n4. Testing chooser:')
+    choose_gen = Repeater(10, Chooser([take_while_1, take_while_2,
+        take_while_3]))
+    values = []
+    gen = choose_gen()
+    for i in range(20):
+        val = next(gen)
+        values.append(val)
+    print(f'Chooser output (20 random choices): {values}')
+    print('\n5. Testing random_repeater:')
+    random_repeat_gen = RandomRepeater(50, take_while_1)
     values = []
     count = 0
     for val in random_repeat_gen():
@@ -215,21 +227,14 @@ if __name__ == '__main__':
         if count >= 20:
             break
     print(f'Random repeater output (up to 20 values): {values}')
-    print('\n5. Testing always_repeater:')
-    always_repeat_gen = AlwaysRepeater(ConstantGen(42.0))
+    print('\n6. Testing always_repeater:')
+    always_repeat_gen = AlwaysRepeater(Sequencer([take_while_1, take_while_2]))
     values = []
     for i, val in enumerate(always_repeat_gen()):
         values.append(val)
-        if i >= 4:
+        if i >= 20:
             break
-    print(f'Always repeater output (first 5): {values}')
-    print('\n6. Testing take_while:')
-    tester = CountTester(3)
-    take_while_gen = TakeWhile(tester, ConstantGen(1.0))
-    values = []
-    for val in take_while_gen():
-        values.append(val)
-    print(f'Take while output (while counter < 3): {values}')
+    print(f'Always repeater output (first 20): {values}')
     print('\n7. Testing sine_wave_gen:')
     sine_gen = SineWaveGen(amplitude=1.0, frequency=1.0, steps=10)
     values = []

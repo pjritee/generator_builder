@@ -29,6 +29,12 @@ class TypeHintRemover(ast.NodeTransformer):
         return node
 
     def visit_Import(self, node):
+        # Replace 'generator_builder' with 'generator_builder_mp'
+        for alias in node.names:
+            if alias.name == 'generator_builder':
+                alias.name = 'generator_builder_mp'
+        
+        # Remove typing imports
         node.names = [n for n in node.names if n.name != 'typing']
         return node if node.names else None
 
