@@ -22,7 +22,7 @@ SOFTWARE.
 A collection of basic generator builders that yield floats in the range [0,1] that, 
 for example, could be used to drive PWM LEDs.
 """
-import generator_builder_mp as gb
+import generator_builder as gb
 import math
 
 

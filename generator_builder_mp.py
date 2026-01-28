@@ -23,7 +23,6 @@ Support for building generators that could, for example, be used to drive PWM LE
 """
 import sys
 import random
-from pytest import TestShortLogReport
 
 
 class GeneratorBuilder:

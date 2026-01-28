@@ -8,9 +8,9 @@ evolved from the PWM example in the `RPi-Pico` repository.
 - **What:** A set of tiny classes that build generators (sequencers, repeaters,
   choosers, take-while helpers) and a collection of float-valued
   generators such as sine, sawtooth, square, constant. The `Tester` class is
-  designed to be used in the `TakeWhile' generator.
+  designed to be used in the `TakeWhile` generator.
 - **Why:** Make it easy to compose and reuse generator behaviour across
-  applications, with a MicroPython-friendly option by stripping type hints. By designing the `Tester` class this way it is possible to write testers that communicate with other testers using a shared object of some kind. This could be used, for example, for a pair of timing testers to be used to program an oscillation between the behaviours of two collections of PWM controlled LEDs.
+  applications, with a MicroPython-friendly option by stripping type hints. By designing the `Tester` class this way it is possible to write testers that communicate with other testers using a shared object of some kind. This could be used, for example, to program an oscillation between the behaviours of two collections of PWM controlled LEDs using a pair of timing testers and another pair of testers looking for a change to a shared object.
 
 **Repository Files**
 - **generator_builder.py:** Core generator-builder classes and example
