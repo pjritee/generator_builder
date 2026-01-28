@@ -162,7 +162,9 @@ if __name__ == "__main__":
             self.count = 0
         
         def __call__(self) -> Callable[[], bool]:
-            self.count = 0
+            # reset count each time __call__ is invoked as part of a fresh
+            # use of a TakeWhile generator
+            self.count = 0  
             def test_fun() -> bool:
                 result = self.count < self.limit
                 self.count += 1
