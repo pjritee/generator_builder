@@ -43,7 +43,7 @@ class SineWave(gb.GeneratorBuilder):
             num_steps = random.randint(self.steps[0], self.steps[1])
         else:
             num_steps = self.steps
-        step_slice = 2 * math.pi / num_steps
+        step_slice = 2 * math.pi / (num_steps - 1)
         for i in range(num_steps):
             yield (math.sin(i * step_slice) + 1) / 2
 
