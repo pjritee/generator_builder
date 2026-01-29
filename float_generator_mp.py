@@ -27,7 +27,7 @@ import math
 import random
 
 
-class SineWave(gb.GeneratorBuilder):
+class SineWave(gb.GeneratorFactory):
     """A class that, when called, returns a generator that yields values in a 
     sine wave pattern in the range [0,1] for one cycle."""
 
@@ -48,7 +48,7 @@ class SineWave(gb.GeneratorBuilder):
             yield (math.sin(i * step_slice) + 1) / 2
 
 
-class SawtoothWave(gb.GeneratorBuilder):
+class SawtoothWave(gb.GeneratorFactory):
     """A class that, when called, returns a generator that yields values in a 
     sawtooth wave pattern in the range [0,1] for one cycle."""
 
@@ -85,7 +85,7 @@ class SawtoothWave(gb.GeneratorBuilder):
         yield 0.5
 
 
-class SquareWave(gb.GeneratorBuilder):
+class SquareWave(gb.GeneratorFactory):
     """A class that, when called, returns a generator that yields values in a 
     square wave pattern in the range [0,1] for one cycle."""
 

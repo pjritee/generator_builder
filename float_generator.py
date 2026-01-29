@@ -27,7 +27,7 @@ import math
 import random
 from typing import Generator
 
-class SineWave(gb.GeneratorBuilder[float]):
+class SineWave(gb.GeneratorFactory[float]):
     """A class that, when called, returns a generator that yields values in a 
     sine wave pattern in the range [0,1] for one cycle."""
 
@@ -47,7 +47,7 @@ class SineWave(gb.GeneratorBuilder[float]):
         for i in range(num_steps):
             yield (math.sin(i*step_slice) + 1) / 2  # Normalize to [0, 1]
 
-class SawtoothWave(gb.GeneratorBuilder[float]):
+class SawtoothWave(gb.GeneratorFactory[float]):
     """A class that, when called, returns a generator that yields values in a 
     sawtooth wave pattern in the range [0,1] for one cycle."""
 
@@ -89,7 +89,7 @@ class SawtoothWave(gb.GeneratorBuilder[float]):
 
         yield 0.5  # Ensure we hit 0.5 exactly
 
-class SquareWave(gb.GeneratorBuilder[float]):
+class SquareWave(gb.GeneratorFactory[float]):
     """A class that, when called, returns a generator that yields values in a 
     square wave pattern in the range [0,1] for one cycle."""
 

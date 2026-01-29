@@ -76,40 +76,53 @@ def float2u16(value: float) -> int:
         return int(value * MAX_DUTY)   
          
 # Example generator sequences for each LED
-generators = [
-    # A random square wave whose length is between 50 and 100 steps, with a 20% chance of repeating
-    gb.RandomRepeater(20, fg.SquareWave((50, 100))),
-    # A sine wave  whose length is between 100 and 300 steps, with a 70% chance of repeating
-    gb.RandomRepeater(70, fg.SineWave((100, 300))),
-    # An on generator for 50 steps with a 25% chance of repeating
-    gb.RandomRepeater(25, gb.ConstantFor(1.0, 50)),
-    ]
+# A factory that creates a generator producing a sequence consisting of:
+#   - An initial delay of between 20 and 100 steps (random)
+#   - A repeating sequence consisting of:
+#       - A random square wave of length between 50 and 100 steps with a 20% chance of repeating
+#       - A sine wave of length between 100 and 300 steps with a 70% chance of repeating
+#       - An 'on' generator for 50 steps with a 25% chance of repeating
+generator_factory = gb.Sequencer([
+    gb.ConstantFor(0.0, random.randint(20,100)),
+    gb.Repeater(gb.Sequencer([
+        # A random square wave whose length is between 50 and 100 steps, with a 20% chance of repeating
+        gb.RandomRepeater(20, fg.SquareWave((50, 100))),
+        # A sine wave  whose length is between 100 and 300 steps, with a 70% chance of repeating
+        gb.RandomRepeater(70, fg.SineWave((100, 300))),
+        # An on generator for 50 steps with a 25% chance of repeating
+        gb.RandomRepeater(25, gb.ConstantFor(1.0, 50))
+        ]))
+    ])
 
-# Create a list of pairs each consisting of a led and a generator to be used for that led with each generator being a choice generator using 
-# a random delay between 20 and 200 steps to stagger the starting times
+# A factory that creates a sine wave generator of length 200 steps
+sine_wave_factory = gb.Repeater(fg.SineWave(200))
+
+# Create a list of pairs each consisting of a led and a generator to be used for that led.
+# For LEDs that are to have the same behaviour we can reuse the same generator factory for all the LEDs since each call 
+# to the factory creates a new generator instance.
 led_controls = [
     
-    # First control set: each LED gets a sequence generator consisting of a random delay followed by a choice of the above generators
-    [(led, gb.AlwaysRepeater(gb.Sequencer([gb.ConstantFor(0.0, random.randint(20,100))]+generators))()) for led in leds],
+    # First control set: each LED gets a sequence generator consisting of a random delay followed by a sequence generator 
+    # created by the generator_factory defined above
+    [(led, generator_factory()) for led in leds],
+
      # Second control set: each LED gets a sequence generator consisting of an increasing delay followed by a sine wave generator
-    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), gb.AlwaysRepeater(fg.SineWave(200))])()) for i, led in enumerate(leds)]
+    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)]
 ]
 
 # Initialize all LEDs to off
 for led in leds:
     led.duty_u16(0)
 
+# Button to switch between control sets
 up_pressed = False
-
 last_pressed = time.ticks_ms()
-
 def handle_press(arg):
     global up_pressed, last_pressed
     if time.ticks_diff(time.ticks_ms(), last_pressed) > 500:   
         last_pressed = time.ticks_ms()
         print("press", arg)
         up_pressed = True
-
 up_button = Pin(16, Pin.IN, Pin.PULL_UP)
 up_button.irq(trigger=Pin.IRQ_FALLING, handler=handle_press)
 

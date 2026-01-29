@@ -33,16 +33,21 @@ from typing import Generator, TypeVar, Callable
 
 T = TypeVar('T')
 
+"""
+Each GeneratorFactory object is a factory that, when called, returns a generator yielding values of type T.
 
-class GeneratorBuilder[T]:
-    """Base class for generator builders. Subclasses must implement the _generate method."""
+Many of the subclasses defined below are 'higher order' in that they take one or more generator factories
+as parameters and return a new generator factory that combines them in some way.
+"""
+class GeneratorFactory[T]:
+    """Base class for generator factories. Subclasses must implement the _generate method."""
     def __call__(self) -> Generator[T, None, None]:
         return self._generate()
     
     def _generate(self) -> Generator[T, None, None]:
         raise NotImplementedError("Subclasses must implement _generate")
 
-class Sequencer[T](GeneratorBuilder[T]):
+class Sequencer[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that iterates through the supplied list of generators,
     yielding from each in turn. Note that each generator (except possibly the last one) should be finite."""
     def __init__(self, generators: list[Callable[[], Generator[T,None,None]]]):
@@ -52,7 +57,7 @@ class Sequencer[T](GeneratorBuilder[T]):
         for generator in self.generators:
             yield from generator()
 
-class Chooser[T](GeneratorBuilder[T]):
+class Chooser[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that randomly chooses from the supplied list of generators,
     yielding from the chosen generator."""
     def __init__(self, generators: list[Callable[[], Generator[T,None,None]]]):
@@ -61,21 +66,18 @@ class Chooser[T](GeneratorBuilder[T]):
     def _generate(self) -> Generator[T,None,None]:
         yield from random.choice(self.generators)()
 
-class Repeater[T](GeneratorBuilder[T]):
+class RepeaterFor[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
     the supplied number of times. Note that the supplied generator should be finite."""
     def __init__(self, number: int, generator: Callable[[], Generator[T,None,None]]):
         self.number = number
         self.generator = generator
     
-    def __call__(self) -> Generator[T,None,None]:
-        return self._generate()
-    
     def _generate(self) -> Generator[T,None,None]:
         for _ in range(self.number):
             yield from self.generator()
 
-class RandomRepeater[T](GeneratorBuilder[T]):
+class RandomRepeater[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
     repeatedly with the supplied probability. Note that the supplied generator should be finite."""
     def __init__(self, probability: int, generator: Callable[[], Generator[T,None,None]]):
@@ -86,7 +88,7 @@ class RandomRepeater[T](GeneratorBuilder[T]):
         while random.randint(0,100) < self.probability:
             yield from self.generator()
 
-class AlwaysRepeater[T](GeneratorBuilder[T]):
+class Repeater[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
     forever. Note that the supplied generator should be finite."""
     def __init__(self, generator: Callable[[], Generator[T,None,None]]):
@@ -102,20 +104,20 @@ class Tester:
     def __call__(self) -> Callable[[], bool]:
         raise NotImplementedError("Subclasses must implement __call__")
 
-class TakeWhile[T](GeneratorBuilder[T]):
+class TakeWhile[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
-    while the supplied condition is true."""
+    while the supplied tester returns true when called."""
     def __init__(self, tester: Tester, generator: Callable[[], Generator[T,None,None]]):
         self.tester = tester
         self.generator = generator
     
     def _generate(self) -> Generator[T,None,None]:
         g = self.generator()
-        test = self.tester()
+        test = self.tester() # Get a fresh tester function
         while test():
             yield next(g)
 
-class Constant[T](GeneratorBuilder[T]):
+class Constant[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields a constant value
     indefinitely."""
 
@@ -127,7 +129,7 @@ class Constant[T](GeneratorBuilder[T]):
         while True:
             yield self.value
 
-class ConstantFor[T](GeneratorBuilder[T]):
+class ConstantFor[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields a constant value
     for a specified number of steps."""
 
@@ -179,7 +181,7 @@ class TimeoutTester(Tester):
 # Test code and example usage
 if __name__ == "__main__":
     
-    class RampGen(GeneratorBuilder[float]):
+    class RampGen(GeneratorFactory[float]):
         """A generator that yields values from start to end in steps."""
         def __init__(self, start: float, end: float, steps: int):
             self.start = start
@@ -193,7 +195,7 @@ if __name__ == "__main__":
                 yield current
                 current += step_size
     
-    class SineWaveGen(GeneratorBuilder[float]):
+    class SineWaveGen(GeneratorFactory[float]):
         """A generator that yields values from a sine wave."""
         def __init__(self, amplitude: float = 1.0, frequency: float = 1.0, steps: int = 100):
             self.amplitude = amplitude
@@ -240,14 +242,14 @@ if __name__ == "__main__":
     print(f"Sequencer output: {values}")
     
     print("\n3. Testing repeater:")
-    repeat_gen = Repeater(3, RampGen(0.0, 1.0, 3))
+    repeat_gen = RepeaterFor(3, RampGen(0.0, 1.0, 3))
     values = []
     for val in repeat_gen():
         values.append(round(val, 2))
     print(f"Repeater output (3 times): {values}")
 
     print("\n4. Testing chooser:")
-    choose_gen = Repeater(10, Chooser([
+    choose_gen = RepeaterFor(10, Chooser([
         take_while_1,
         take_while_2,
         take_while_3    
@@ -272,7 +274,7 @@ if __name__ == "__main__":
     print(f"Random repeater output (up to 20 values): {values}")
     
     print("\n6. Testing always_repeater:")
-    always_repeat_gen = AlwaysRepeater(Sequencer([take_while_1, take_while_2]))
+    always_repeat_gen = Repeater(Sequencer([take_while_1, take_while_2]))
     values = []
     for i, val in enumerate(always_repeat_gen()):
         values.append(val)
@@ -291,9 +293,9 @@ if __name__ == "__main__":
     generators = [
         Sequencer([Constant(1.0)]),
         Chooser([Constant(1.0)]),
-        Repeater(1, Constant(1.0)),
+        RepeaterFor(1, Constant(1.0)),
         RandomRepeater(100, Constant(1.0)),
-        AlwaysRepeater(Constant(1.0)),
+        Repeater(Constant(1.0)),
         TakeWhile(AlwaysTrueTester(), Constant(1.0)),
         Constant(1.0),
         ConstantFor(1.0, 5),
@@ -302,7 +304,7 @@ if __name__ == "__main__":
     ]
     
     for gen in generators:
-        print(f"{gen.__class__.__name__}: isinstance(GeneratorBuilder) = {isinstance(gen, GeneratorBuilder)}")
+        print(f"{gen.__class__.__name__}: isinstance(GeneratorFactory) = {isinstance(gen, GeneratorFactory)}")
         gen_iter = gen()
         print(f"  Returns generator: {hasattr(gen_iter, '__iter__') and hasattr(gen_iter, '__next__')}")
         gen_iter2 = gen()
