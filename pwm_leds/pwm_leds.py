@@ -172,10 +172,10 @@ led_controls = [
     
     # First control set: each LED gets a sequence generator consisting of a random delay followed by a sequence generator 
     # created by the generator_factory defined above
-    #[(led, generator_factory()) for led in leds],
+    [(led, generator_factory()) for led in leds],
 
      # Second control set: each LED gets a sequence generator consisting of an increasing delay followed by a sine wave generator
-    #[(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)],
+    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)],
 
     # Third control set: red, blue, yellow LEDs take turns to follow a sine wave while the other LEDs are off
     [(led, rgb_generator_factory(0)()) for led in red_leds] +
