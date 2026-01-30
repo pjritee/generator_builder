@@ -103,6 +103,10 @@ class Tester:
 
     def __call__(self) -> Callable[[], bool]:
         raise NotImplementedError("Subclasses must implement __call__")
+    
+    def on_false(self):
+        """Called when the tester returns false. Override in subclasses to provide behaviour on false."""
+        pass
 
 class TakeWhile[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields from the supplied generator
@@ -116,6 +120,8 @@ class TakeWhile[T](GeneratorFactory[T]):
         test = self.tester() # Get a fresh tester function
         while test():
             yield next(g)
+        # Tester returned false
+        self.tester.on_false()
 
 class Constant[T](GeneratorFactory[T]):
     """A class that, when called, returns a generator that yields a constant value
@@ -176,6 +182,7 @@ class TimeoutTester(Tester):
         start_time = self._get_time()
         def test_fun() -> bool:
             return (self._get_time() - start_time) < self.limit_seconds
+            
         return test_fun
 
 # Test code and example usage

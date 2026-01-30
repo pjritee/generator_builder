@@ -73,7 +73,7 @@ def float2u16(value: float) -> int:
     elif value >= 1.0:
         return MAX_DUTY
     else:
-        return int(value * MAX_DUTY)   
+        return round(value * MAX_DUTY)   
          
 # Example generator sequences for each LED
 # A factory that creates a generator producing a sequence consisting of:
@@ -95,7 +95,75 @@ generator_factory = gb.Sequencer([
     ])
 
 # A factory that creates a sine wave generator of length 200 steps
-sine_wave_factory = gb.Repeater(fg.SineWave(200))
+sine_wave_factory = fg.SineWave(400)
+
+# For the following generator we want to have the red LEDs follow a sine wave for a specified time with the other LEDs off.
+# Then we want the blue LEDs to follow the sine wave with the other LEDs off, and then the yellow LEDs to follow the sine wave with the other LEDs off.
+# To do this we write testers that can communicate which colour is to be active. When a timer tester expires we need to set a 
+# diferent set of LEDs active. This needs to be done in such a way that all the testers see the same state.
+# This can be done by having a shared state object that all the testers can access.
+
+# We let 0,1,2 represent red, blue, yellow active respectively and define the following simple data class to hold the state.
+
+class ColourState:
+    def __init__(self):
+        self.active_colour = 0  # Start with red active
+
+    def set_colour(self, colour: int):
+        self.active_colour = colour 
+
+colour_state = ColourState()
+
+# We now need to define two testers:
+# 1. A tester that tests whether a specified colour is not active
+class ColourTester(gb.Tester):
+    def __init__(self, colour_state: ColourState, colour: int):
+        self.colour_state = colour_state
+        self.colour = colour
+
+    def __call__(self) -> Callable[[], bool]:
+        def test_fun() -> bool:
+            return self.colour_state.active_colour != self.colour
+        return test_fun
+    
+    
+# 2. A tester that after a specified time changes the active colour to the next one
+class ColourTimerTester(gb.TimeoutTester):
+    def __init__(self, colour_state: ColourState, colour: int, limit_seconds: float):
+        super().__init__(limit_seconds)
+        self.colour_state = colour_state
+        self.colour = colour
+
+    def on_false(self):
+        # Change the active colour to the next one
+        # Note that will be called "at the same time" by all instances of this tester when their timeouts occur and
+        # they will all set the same next colour.
+        next_colour = (self.colour + 1) % 3
+        self.colour_state.set_colour(next_colour)
+
+def make_timer_testers(limit_seconds: float) -> list[ColourTimerTester]:
+    """Create a list of ColourTimerTesters for each colour with the specified limit_seconds."""
+    return [ColourTimerTester(colour_state, colour, limit_seconds) for colour in range(3)]
+
+def make_colour_testers() -> list[ColourTester]:
+    """Create a list of ColourTesters for each colour."""
+    return [ColourTester(colour_state, colour) for colour in range(3)]
+
+colour_testers = make_colour_testers()
+timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
+zero_factory = gb.Repeater(gb.Constant(0.0))
+repeating_sine_factory = gb.Repeater(sine_wave_factory)
+
+# Now we can define the generator factories for this behaviour
+def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
+    """Returns a generator factory that creates a generator that produces a sine wave
+    when the specified colour is active and 0.0 otherwise."""
+    
+    return gb.Repeater(gb.Sequencer([
+        gb.TakeWhile(colour_testers[colour], zero_factory),
+        gb.TakeWhile(timer_testers[colour], repeating_sine_factory)
+        
+        ]))
 
 # Create a list of pairs each consisting of a led and a generator to be used for that led.
 # For LEDs that are to have the same behaviour we can reuse the same generator factory for all the LEDs since each call 
@@ -104,10 +172,15 @@ led_controls = [
     
     # First control set: each LED gets a sequence generator consisting of a random delay followed by a sequence generator 
     # created by the generator_factory defined above
-    [(led, generator_factory()) for led in leds],
+    #[(led, generator_factory()) for led in leds],
 
      # Second control set: each LED gets a sequence generator consisting of an increasing delay followed by a sine wave generator
-    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)]
+    #[(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)],
+
+    # Third control set: red, blue, yellow LEDs take turns to follow a sine wave while the other LEDs are off
+    [(led, rgb_generator_factory(0)()) for led in red_leds] +
+    [(led, rgb_generator_factory(1)()) for led in blue_leds] +
+    [(led, rgb_generator_factory(2)()) for led in yellow_leds]
 ]
 
 # Initialize all LEDs to off

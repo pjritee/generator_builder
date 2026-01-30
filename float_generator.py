@@ -45,7 +45,7 @@ class SineWave(gb.GeneratorFactory[float]):
             num_steps = self.steps
         step_slice = 2 * math.pi / (num_steps-1)
         for i in range(num_steps):
-            yield (math.sin(i*step_slice) + 1) / 2  # Normalize to [0, 1]
+            yield ((math.sin(i*step_slice) + 1) / 2)  # Normalize to [0, 1]
 
 class SawtoothWave(gb.GeneratorFactory[float]):
     """A class that, when called, returns a generator that yields values in a 

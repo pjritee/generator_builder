@@ -109,6 +109,10 @@ class Tester:
     def __call__(self):
         raise NotImplementedError('Subclasses must implement __call__')
 
+    def on_false(self):
+        """Called when the tester returns false. Override in subclasses to provide behaviour on false."""
+        pass
+
 
 class TakeWhile(GeneratorFactory):
     """A class that, when called, returns a generator that yields from the supplied generator
@@ -123,6 +127,7 @@ class TakeWhile(GeneratorFactory):
         test = self.tester()
         while test():
             yield next(g)
+        self.tester.on_false()
 
 
 class Constant(GeneratorFactory):
