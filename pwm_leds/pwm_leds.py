@@ -86,16 +86,16 @@ generator_factory = gb.Sequencer([
     gb.ConstantFor(0.0, random.randint(20,100)),
     gb.Repeater(gb.Sequencer([
         # A random square wave whose length is between 50 and 100 steps, with a 20% chance of repeating
-        gb.RandomRepeater(20, fg.SquareWave((50, 100))),
+        gb.RandomRepeater(20, fg.square_wave_factory((50, 100))),
         # A sine wave  whose length is between 100 and 300 steps, with a 70% chance of repeating
-        gb.RandomRepeater(70, fg.SineWave((100, 300))),
+        gb.RandomRepeater(70, fg.sine_wave_factory((100, 300))),
         # An on generator for 50 steps with a 25% chance of repeating
         gb.RandomRepeater(25, gb.ConstantFor(1.0, 50))
         ]))
     ])
 
 # A factory that creates a sine wave generator of length 200 steps
-sine_wave_factory = fg.SineWave(400)
+sine_wave_factory_200 = fg.sine_wave_factory(200)
 
 # For the following generator we want to have the red LEDs follow a sine wave for a specified time with the other LEDs off.
 # Then we want the blue LEDs to follow the sine wave with the other LEDs off, and then the yellow LEDs to follow the sine wave with the other LEDs off.
@@ -152,8 +152,8 @@ def make_colour_testers() -> list[ColourTester]:
 colour_testers = make_colour_testers()
 timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
 zero_factory = gb.Repeater(gb.Constant(0.0))
-repeating_sine_factory = gb.Repeater(sine_wave_factory)
-
+repeating_sine_factory = gb.Repeater(sine_wave_factory_200)
+repeating_sine_factory_offset = gb.Repeater(fg.sine_wave_factory(800, offset=0.75))
 # Now we can define the generator factories for this behaviour
 def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
     """Returns a generator factory that creates a generator that produces a sine wave
@@ -161,7 +161,7 @@ def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]:
     
     return gb.Repeater(gb.Sequencer([
         gb.TakeWhile(colour_testers[colour], zero_factory),
-        gb.TakeWhile(timer_testers[colour], repeating_sine_factory)
+        gb.TakeWhile(timer_testers[colour], repeating_sine_factory_offset)
         
         ]))
 
@@ -175,7 +175,7 @@ led_controls = [
     [(led, generator_factory()) for led in leds],
 
      # Second control set: each LED gets a sequence generator consisting of an increasing delay followed by a sine wave generator
-    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), sine_wave_factory])()) for i, led in enumerate(leds)],
+    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), repeating_sine_factory])()) for i, led in enumerate(leds)],
 
     # Third control set: red, blue, yellow LEDs take turns to follow a sine wave while the other LEDs are off
     [(led, rgb_generator_factory(0)()) for led in red_leds] +
@@ -205,15 +205,12 @@ STEP_TIME = 10  # milliseconds per step
 
 # With STEP_TIME of 10ms, a sine wave of length 200 will have a period of about 2 seconds.
 index = 0
+num_controls = len(led_controls)
 while True:
     start = time.ticks_ms()
     if up_pressed:
         up_pressed = False
-        if index == 0:
-            index = 1
-        else:
-            index = 0
-    
+        index = (index + 1) % num_controls
     
     # Step each control generator
     

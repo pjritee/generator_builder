@@ -25,146 +25,109 @@ for example, could be used to drive PWM LEDs.
 import generator_builder as gb
 import math
 import random
-from typing import Generator
+from typing import Generator, Callable
 
-class SineWave(gb.GeneratorFactory[float]):
-    """A class that, when called, returns a generator that yields values in a 
-    sine wave pattern in the range [0,1] for one cycle."""
-
-    def __init__(self, steps: int | tuple[int, int]):
-        """steps - the number of steps (yielded values) in the sine wave cycle if
-        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
-        and a random number of steps in that range is chosen each time the generator is created."""
+class Wave(gb.GeneratorFactory[float]):
+    """A class that, when called, returns a generator that yields values according to
+    the provided wave (cyclic) function in the range [0,1] for one cycle."""
+    def __init__(self, wave_func: Callable[[float], float], steps: int | tuple[int, int], offset: float = 0.0):
+        """ wave_func - a function that takes a float in the range [0,1] and returns a float in the range [0,1]. 
+        This function is cyclic with a period of 1.0.
+        steps - the number of steps (yielded values) in the wave cycle if an integer is provided. 
+        If a tuple is provided, it is interpreted as (min_steps, max_steps) and a random number of steps in that 
+        range is chosen each time the generator is created.
+        offset - a float in the range [0,1] that specifies the starting point in the wave cycle. 
+        """
+        self.wave_func = wave_func
         self.steps = steps
         self.is_random = isinstance(steps, tuple)
-    
-    def _generate(self) -> Generator[float, None, None]:
+        self.offset = offset
+    def _generate(self):
         if self.is_random:
             num_steps = random.randint(self.steps[0], self.steps[1])
         else:
             num_steps = self.steps
-        step_slice = 2 * math.pi / (num_steps-1)
+        step_slice = 1.0 / (num_steps)
         for i in range(num_steps):
-            yield ((math.sin(i*step_slice) + 1) / 2)  # Normalize to [0, 1]
+            position = (self.offset + i * step_slice) % 1.0
+            yield self.wave_func(position)  
 
-class SawtoothWave(gb.GeneratorFactory[float]):
-    """A class that, when called, returns a generator that yields values in a 
-    sawtooth wave pattern in the range [0,1] for one cycle."""
 
-    def __init__(self, steps: int | tuple[int, int]):
-        """steps - the number of steps (yielded values) in the sawtooth wave cycle if
-        an integer is provided. If a tuple is provided, it is interpreted as (min_steps, max_steps)
-        and a random number of steps in that range is chosen each time the generator is created.
-        steps is changed to 1 + (steps//4)*4 in order to simplify the implementation."""
-        self.steps = steps
-        self.is_random = isinstance(steps, tuple)
+def sine_function(x: float) -> float:
+    """A sine wave function that maps [0,1] to [0,1]."""
+    return (math.sin(2 * math.pi * x) + 1) / 2
 
-    def _generate(self) -> Generator[float, None, None]:
-        if self.is_random:
-            num_steps = random.randint(self.steps[0], self.steps[1])
-        else:
-            num_steps = self.steps
-        quater_steps = (num_steps // 4)
-        delta = 0.5 / quater_steps 
-        value = 0.5
-        yield value
-        # Rising edge
-        for i in range(quater_steps-1):
-            value += delta
-            yield value
+def square_wave_function(x: float) -> float:
+    """A square wave function that maps [0,1] to [0,1]."""
+    return 1.0 if x < 0.5 else 0.0
+
+def sawtooth_wave_function(x: float) -> float:
+    """A sawtooth wave function that maps [0,1] to [0,1]."""
+    if x < 0.25:
+        return 0.5 + 2 * x
+    elif x < 0.75:
+        return 1.0 - 2 * (x - 0.25)
+    else:
+        return 2 * (x - 0.75)
     
-        yield 1.0  # Ensure we hit 1.0 exactly
-        value = 1.0
-        # Falling edge
-        for i in range(2*quater_steps-1):
-            value -= delta
-            yield value
-        
-        yield 0.0  # Ensure we hit 0.0 exactly
-        value = 0.0
-        # Rising edge
-        for i in range(quater_steps-1):
-            value += delta
-            yield value
 
-        yield 0.5  # Ensure we hit 0.5 exactly
-
-class SquareWave(gb.GeneratorFactory[float]):
-    """A class that, when called, returns a generator that yields values in a 
-    square wave pattern in the range [0,1] for one cycle."""
-
-    def __init__(self, steps: int | tuple[int, int]):
-        """steps - the number of steps (yielded values) in the square wave cycle if an integer is provided. 
-        If a tuple is provided, it is interpreted as (min_steps, max_steps)
-        and a random number of steps in that range is chosen each time the generator is created..
-        steps is rounded up to the nearest multiple of 2 in order to simplify the implementation."""
-        self.steps = steps
-        self.is_random = isinstance(steps, tuple)
-
-    def _generate(self) -> Generator[float, None, None]:
-        if self.is_random:
-            num_steps = random.randint(self.steps[0], self.steps[1])    
-        else:
-            num_steps = self.steps
-        
-        half_steps = (num_steps+1) // 2
-        # High state
-        for i in range(half_steps):
-            yield 1.0
-        # Low state
-        for i in range(half_steps):
-            yield 0.0
-
+def sine_wave_factory(steps: int | tuple[int, int], offset: float = 0.0) -> gb.GeneratorFactory[float]:
+    """Returns a generator factory that creates a sine wave generator."""
+    return Wave(sine_function, steps, offset)
+def square_wave_factory(steps: int | tuple[int, int], offset: float = 0.0) -> gb.GeneratorFactory[float]:
+    """Returns a generator factory that creates a square wave generator."""
+    return Wave(square_wave_function, steps, offset)
+def sawtooth_wave_factory(steps: int | tuple[int, int], offset: float = 0.0) -> gb.GeneratorFactory[float]:
+    """Returns a generator factory that creates a sawtooth wave generator."""
+    return Wave(sawtooth_wave_function, steps, offset)
 
 
 
 if __name__ == "__main__":
     print("Testing float generators...")
     
-    print("\n1. Testing SineWave:")
-    sine_gen = SineWave(10)
+    print("\n1. Testing sine wave:")
+    sine_gen = sine_wave_factory(10)
     values = list(sine_gen())
-    print(f"SineWave (10 steps): {[round(v, 2) for v in values]}")
+    print(f"Sine wave (10 steps): {[round(v, 2) for v in values]}")
     assert len(values) == 10
     assert all(0.0 <= v <= 1.0 for v in values)
 
-    print('\n2. Testing SineWave with step range:')
-    sine_rand = SineWave((5,15))
-    for _ in range(3):        
-        values = list(sine_rand())
-    print(f'SineWave output: {[round(v, 2) for v in values]}')
+    print('\n2. Testing sine wave with step range:')
+    sine_rand = sine_wave_factory((5,15))
+    values = list(sine_rand())
+    print(f'Sine wave output: {[round(v, 2) for v in values]}')
     assert 5 <= len(values) <= 15
     assert all(0.0 <= v <= 1.0 for v in values)
     
-    print("\n3. Testing SawtoothWave:")
-    sawtooth_gen = SawtoothWave(10)
+    print("\n3. Testing sawtooth wave:")
+    sawtooth_gen = sawtooth_wave_factory(10)
     values = list(sawtooth_gen())
-    print(f"SawtoothWave output: {[round(v, 2) for v in values]}")
-    assert len(values) == 9  # 1 + (10//4)*4 = 9
+    print(f"Sawtooth wave output: {[round(v, 2) for v in values]}")
+    assert len(values) == 10
     assert all(0.0 <= v <= 1.0 for v in values)
-    assert 1.0 in values and 0.0 in values
     
-    print('\n4. Testing SawtoothWave with step range:')
-    sawtooth_rand = SawtoothWave((8,16))
+    print('\n4. Testing sawtooth wave with step range:')
+    sawtooth_rand = sawtooth_wave_factory((8,16))
     values = list(sawtooth_rand())
-    print(f'SawtoothWave output: {[round(v, 2) for v in values]}')
+    print(f'Sawtooth wave output: {[round(v, 2) for v in values]}')
     assert 8 <= len(values) <= 16
     assert all(0.0 <= v <= 1.0 for v in values) 
 
-    print("\n5. Testing SquareWave:")
-    square_gen = SquareWave(10)
+    print("\n5. Testing square wave:")
+    square_gen = square_wave_factory(10)
     values = list(square_gen())
-    print(f"SquareWave output: {values}")
+    print(f"Square wave output: {values}")
     assert len(values) == 10
     assert all(v in [0.0, 1.0] for v in values)
     high_count = sum(1 for v in values if v == 1.0)
     low_count = sum(1 for v in values if v == 0.0)
     assert high_count == low_count
     
-    print('\n6. Testing SquareWave with step range:')
-    square_rand = SquareWave((6,12))
+    print('\n6. Testing square wave with step range:')
+    square_rand = square_wave_factory((6,12))
     values = list(square_rand())
-    print(f'SquareWave output: {values}')
+    print(f'Square wave output: {values}')
     assert 6 <= len(values) <= 12
     assert all(v in [0.0, 1.0] for v in values)
     high_count = sum(1 for v in values if v == 1.0)
@@ -186,9 +149,9 @@ if __name__ == "__main__":
     
     print("\n9. Testing value ranges:")
     generators = [
-        ("SineWave", SineWave(100)),
-        ("SawtoothWave", SawtoothWave(100)),
-        ("SquareWave", SawtoothWave(100)),
+        ("Sine wave", sine_wave_factory(100)),
+        ("Sawtooth wave", sawtooth_wave_factory(100)),
+        ("Square wave", square_wave_factory(100)),
         ("Constant", gb.Constant(0.3)),
         ("ConstantFor", gb.ConstantFor(0.7, 100))
     ]
@@ -202,6 +165,31 @@ if __name__ == "__main__":
             assert 0.0 <= value <= 1.0, f"{name} produced value {value} outside [0,1]"
         print(f"{name}: All values in [0,1]")
     
+    print("\n10. Testing sine wave with offset:")
+    sine_offset_gen = sine_wave_factory(10, offset=0.75)
+    values = list(sine_offset_gen())
+    print(f"Sine wave (10 steps, offset=0.75): {[round(v, 2) for v in values]}")
+    assert len(values) == 10
+    assert all(0.0 <= v <= 1.0 for v in values)
     
+    print('\n11. Testing sawtooth wave with offset:')
+    sawtooth_offset_gen = sawtooth_wave_factory(10, offset=0.5)
+    values = list(sawtooth_offset_gen())
+    print(f'Sawtooth wave (10 steps, offset=0.5): {[round(v, 2) for v in values]}')
+    assert len(values) == 10
+    assert all(0.0 <= v <= 1.0 for v in values)
+    
+    print("\n12. Testing square wave with offset:")
+    square_offset_gen = square_wave_factory(10, offset=0.75)
+    values = list(square_offset_gen())
+    print(f"Square wave (10 steps, offset=0.75): {values}")
+    assert len(values) == 10
+    assert all(v in [0.0, 1.0] for v in values)
+    
+    print("\n13. Testing offset produces different values than non-offset:")
+    sine_no_offset = list(sine_wave_factory(10)())
+    sine_with_offset = list(sine_wave_factory(10, offset=0.5)())
+    assert sine_no_offset != sine_with_offset, "Offset should produce different values"
+    print("Offset successfully produces different wave values")
     
     print("\nAll tests completed!")
