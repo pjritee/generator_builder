@@ -152,8 +152,8 @@ def make_colour_testers() -> list[ColourTester]:
 colour_testers = make_colour_testers()
 timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
 zero_factory = gb.Repeater(gb.Constant(0.0))
-repeating_sine_factory = gb.Repeater(sine_wave_factory_200)
-repeating_sine_factory_offset = gb.Repeater(fg.sine_wave_factory(800, offset=0.75))
+repeating_sine_factory = fg.sine_wave_factory(200, runs=0)
+repeating_sine_factory_offset = fg.sine_wave_factory(800, offset=0.75, runs=0)
 # Now we can define the generator factories for this behaviour
 def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
     """Returns a generator factory that creates a generator that produces a sine wave
