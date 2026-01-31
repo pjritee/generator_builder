@@ -30,6 +30,7 @@ Usage
 - Copy the repository files to your Pico (via Thonny, rshell, ampy, mpremote, etc.).
 - Ensure LEDs have appropriate current-limiting resistors and are wired to the appropriate pins.
 - Open and run `pwm_leds.py` on the board. Press the button wired to Pin 16 (to GND) to cycle control sets.
+- In order to run the program automatically on power up save `pwm_leds.py` as `main.py` on the Pico.
 
 Safety and troubleshooting
 - Verify wiring and resistor values before powering the board. Avoid driving LEDs without resistors.

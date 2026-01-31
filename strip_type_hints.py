@@ -52,6 +52,26 @@ class TypeHintRemover(ast.NodeTransformer):
             return None
         return node
 
+    def _is_main_check(self, test) -> bool:
+        # Detect patterns like: if __name__ == "__main__":
+        if isinstance(test, ast.Compare):
+            left = test.left
+            if isinstance(left, ast.Name) and left.id == '__name__':
+                for op, comp in zip(test.ops, test.comparators):
+                    if isinstance(op, ast.Eq):
+                        if isinstance(comp, ast.Constant) and comp.value == '__main__':
+                            return True
+                        if isinstance(comp, ast.Constant) and comp.value == '__main__':
+                            return True
+        return False
+
+    def visit_If(self, node):
+        # Remove top-level "if __name__ == '__main__'" test blocks
+        if self._is_main_check(node.test):
+            return None
+        self.generic_visit(node)
+        return node
+
 def remove_type_hints(source: str) -> str:
     parsed = ast.parse(source)
     transformed = TypeHintRemover().visit(parsed)
