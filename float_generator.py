@@ -38,19 +38,27 @@ class Wave(gb.GeneratorFactory[float]):
         range is chosen each time the generator is created.
         offset - a float in the range [0,1] that specifies the starting point in the wave cycle. 
         runs - number of times to run the wave cycle (default is 1). 0 means infinite.
+
+        We will adjust steps to be a multiple of 4 to ensure wave symmetry.
         """
         self.wave_func = wave_func
-        self.steps = steps
+        if isinstance(steps, int):
+            self.steps = (steps//4)*4  # Ensure multiple of 4 for wave symmetry
+            self.is_random = False
+        else:
+            # We divide by 4 here to keep the random range consistent after multiplying back in _a_cycle_generator
+            self.steps = (steps[0]//4, steps[1]//4)  
+            self.is_random = True
+
         self.is_random = isinstance(steps, tuple)
         self.offset = offset
         self.runs = runs
     def _a_cycle_generator(self):
         if self.is_random:
-            num_steps = random.randint(self.steps[0], self.steps[1])
+            num_steps = 4*random.randint(self.steps[0], self.steps[1])
         else:
             num_steps = self.steps
-        num_steps = (num_steps//4)*4  # Ensure multiple of 4 for wave symmetry
-        step_slice = 1.0 / (num_steps)
+        step_slice = 1.0 / num_steps
         for i in range(num_steps):
             position = (self.offset + i * step_slice) % 1.0
             yield self.wave_func(position)  
@@ -63,10 +71,11 @@ class Wave(gb.GeneratorFactory[float]):
             for _ in range(self.runs):
                 yield from self._a_cycle_generator()
 
+TWO_PI = 2 * math.pi # Constant for 2pi to save recalculating
 
 def sine_function(x: float) -> float:
     """A sine wave function that maps [0,1] to [0,1]."""
-    return (math.sin(2 * math.pi * x) + 1) / 2
+    return (math.sin(TWO_PI * x) + 1) / 2
 
 def square_wave_function(x: float) -> float:
     """A square wave function that maps [0,1] to [0,1]."""
@@ -77,7 +86,7 @@ def sawtooth_wave_function(x: float) -> float:
     if x < 0.25:
         return 0.5 + 2 * x
     elif x < 0.75:
-        return 1.0 - 2 * (x - 0.25)
+        return  1.5 - 2*x   # simplifying 1.0 - 2 * (x - 0.25)
     else:
         return 2 * (x - 0.75)
     

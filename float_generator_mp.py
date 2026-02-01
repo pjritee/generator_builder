@@ -39,19 +39,25 @@ class Wave(gb.GeneratorFactory):
         range is chosen each time the generator is created.
         offset - a float in the range [0,1] that specifies the starting point in the wave cycle. 
         runs - number of times to run the wave cycle (default is 1). 0 means infinite.
+
+        We will adjust steps to be a multiple of 4 to ensure wave symmetry.
         """
         self.wave_func = wave_func
-        self.steps = steps
+        if isinstance(steps, int):
+            self.steps = steps // 4 * 4
+            self.is_random = False
+        else:
+            self.steps = steps[0] // 4, steps[1] // 4
+            self.is_random = True
         self.is_random = isinstance(steps, tuple)
         self.offset = offset
         self.runs = runs
 
     def _a_cycle_generator(self):
         if self.is_random:
-            num_steps = random.randint(self.steps[0], self.steps[1])
+            num_steps = 4 * random.randint(self.steps[0], self.steps[1])
         else:
             num_steps = self.steps
-        num_steps = num_steps // 4 * 4
         step_slice = 1.0 / num_steps
         for i in range(num_steps):
             position = (self.offset + i * step_slice) % 1.0
@@ -66,9 +72,12 @@ class Wave(gb.GeneratorFactory):
                 yield from self._a_cycle_generator()
 
 
+TWO_PI = 2 * math.pi
+
+
 def sine_function(x):
     """A sine wave function that maps [0,1] to [0,1]."""
-    return (math.sin(2 * math.pi * x) + 1) / 2
+    return (math.sin(TWO_PI * x) + 1) / 2
 
 
 def square_wave_function(x):
@@ -81,7 +90,7 @@ def sawtooth_wave_function(x):
     if x < 0.25:
         return 0.5 + 2 * x
     elif x < 0.75:
-        return 1.0 - 2 * (x - 0.25)
+        return 1.5 - 2 * x
     else:
         return 2 * (x - 0.75)
 
