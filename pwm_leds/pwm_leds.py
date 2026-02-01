@@ -35,30 +35,29 @@ import float_generator_mp as fg
 import generator_builder_mp as gb
 
 MAX_DUTY = 65535
-HALF_MAX_DUTY = 32768
-
+# Setup PWM for 16 LEDs on specified pins
 leds = [
     PWM(Pin(0)),    # 0A   R
-    PWM(Pin(1)),    # 0B   B   
-    PWM(Pin(2)),    # 1A   Y 
+    PWM(Pin(1)),    # 0B   Y   
+    PWM(Pin(2)),    # 1A   B 
     PWM(Pin(3)),    # 1B   R 
     PWM(Pin(4)),    # 2A   Y 
-    PWM(Pin(5)),    # 2B   R 
-    PWM(Pin(7)),    # 3B   B
+    PWM(Pin(5)),    # 2B   B 
+    PWM(Pin(7)),    # 3B   R
     PWM(Pin(8)),    # 4A   Y
     PWM(Pin(9)),    # 4B   B 
-    PWM(Pin(13)),   # 6B   Y
-    PWM(Pin(14)),   # 7A   R
+    PWM(Pin(13)),   # 6B   R
+    PWM(Pin(14)),   # 7A   Y
     PWM(Pin(15)),   # 7B   B
     PWM(Pin(28)),   # 6A   R
-    PWM(Pin(27)),   # 5B   B 
-    PWM(Pin(26)),   # 5A   Y 
+    PWM(Pin(27)),   # 5B   Y 
+    PWM(Pin(26)),   # 5A   B 
     PWM(Pin(22))    # 3A   R
     ]
 
-red_leds = [leds[0], leds[3],leds[5],leds[10],leds[12],leds[15]]
-blue_leds = [leds[1],leds[6],leds[8],leds[11],leds[13]]
-yellow_leds = [leds[2],leds[4],leds[7],leds[9],leds[14]]
+red_leds = [leds[0], leds[3],leds[6],leds[9],leds[12],leds[15]]
+blue_leds = [leds[2],leds[5],leds[8],leds[11],leds[14]]
+yellow_leds = [leds[1],leds[4],leds[7],leds[10],leds[13]]
             
 leds_array = [leds[0:4], leds[4:8], leds[8:12], leds[12:16]]
 
@@ -66,14 +65,56 @@ leds_array = [leds[0:4], leds[4:8], leds[8:12], leds[12:16]]
 for led in leds:
     led.freq(1000)	
 
-def float2u16(value: float) -> int:
-    """Convert a float in the range 0.0 to 1.0 to a u16 value for PWM duty cycle."""
-    if value <= 0.0:
-        return 0
-    elif value >= 1.0:
-        return MAX_DUTY
-    else:
-        return round(value * MAX_DUTY)   
+# When running the program on the Pico it appears to the eye that half brightness is not half way
+# between off and full brightness. To compensate for this we can use a cubic mapping
+# from float in the range 0.0 to 1.0 to u16 duty cycle value.
+#
+# Some research (Ask Brave) yields:
+#
+# Human vision perceives brightness non-linearly due to the logarithmic response of the eye and brain to light intensity. ￼ 
+# This means that perceived brightness increases more slowly than the actual physical light intensity. ￼
+
+# Two key psychophysical laws explain this:
+
+# Weber-Fechner Law: States that perceived brightness is proportional to the logarithm of luminance. ￼ 
+# So, doubling the actual light intensity does not double perceived brightness—it results in a much smaller increase in 
+# perceived brightness. 
+# ￼
+# Stevens' Power Law: Refines this further, stating that perceived brightness follows a power function of intensity 
+# (often approximated as $ S = kI^{0.33} $), meaning perception compresses high intensities. ￼
+#
+# As a result, a 50% duty cycle in PWM (which delivers half the average light energy) appears much brighter 
+# than half—often 70–80% of full brightness—because the eye is more sensitive to changes at low light levels 
+# and compresses perception at higher levels. 
+#
+# Inverting this non-linear relationship, we can use a cubic function as a close approximation to map desired perceived brightness.
+#
+# To give the users the choice we give two definitions of float2u16, one linear and one cubic, and the user can select which one 
+# to use by setting the following flag.
+
+USE_CUBIC_BRIGHTNESS_MAPPING = True
+
+if USE_CUBIC_BRIGHTNESS_MAPPING:
+    def float2u16(value: float) -> int:
+        """Convert a float in the range 0.0 to 1.0 to a u16 value for PWM duty cycle."""
+        if value <= 0.0:
+            return 0
+        elif value >= 1.0:
+            return MAX_DUTY
+        else:
+            # multiplication as below is faster than using pow on the Pico
+            return round(value * value * value * MAX_DUTY) # Cubic mapping for perceived brightness
+  
+else:
+    def float2u16(value: float) -> int:
+        """Convert a float in the range 0.0 to 1.0 to a u16 value for PWM duty cycle."""
+        if value <= 0.0:
+            return 0
+        elif value >= 1.0:
+            return MAX_DUTY
+        else:
+            return round(value * MAX_DUTY) # Linear mapping
+
          
 # Example generator sequences for each LED
 # A factory that creates a generator producing a sequence consisting of:
@@ -105,10 +146,14 @@ sine_wave_factory_200 = fg.sine_wave_factory(200)
 
 # We let 0,1,2 represent red, blue, yellow active respectively and define the following simple data class to hold the state.
 
+# We need to make sure all of the testers for one colour have completed before the next colour starts
+
+number_of_colours = [6, 5, 5] # Number of LEDs for each colour: red, blue, yellow
+
 class ColourState:
     def __init__(self):
         self.active_colour = 0  # Start with red active
-
+        
     def set_colour(self, colour: int):
         self.active_colour = colour 
 
@@ -133,13 +178,17 @@ class ColourTimerTester(gb.TimeoutTester):
         super().__init__(limit_seconds)
         self.colour_state = colour_state
         self.colour = colour
+        self.number_responded = 0
 
     def on_false(self):
         # Change the active colour to the next one
         # Note that will be called "at the same time" by all instances of this tester when their timeouts occur and
         # they will all set the same next colour.
-        next_colour = (self.colour + 1) % 3
-        self.colour_state.set_colour(next_colour)
+        self.number_responded += 1
+        if self.number_responded >= number_of_colours[self.colour]:
+            self.number_responded = 0
+            next_colour = (self.colour + 1) % 3
+            self.colour_state.set_colour(next_colour)
 
 def make_timer_testers(limit_seconds: float) -> list[ColourTimerTester]:
     """Create a list of ColourTimerTesters for each colour with the specified limit_seconds."""
@@ -153,7 +202,7 @@ colour_testers = make_colour_testers()
 timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
 zero_factory = gb.Repeater(gb.Constant(0.0))
 repeating_sine_factory = fg.sine_wave_factory(200, runs=0)
-repeating_sine_factory_offset = fg.sine_wave_factory(800, offset=0.75, runs=0)
+repeating_sine_factory_offset = fg.sine_wave_factory(400, offset=0.75, runs=0)
 # Now we can define the generator factories for this behaviour
 def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
     """Returns a generator factory that creates a generator that produces a sine wave
