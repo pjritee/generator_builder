@@ -1,0 +1,46 @@
+site_name: Generator Builder
+site_description: Generator factory utilities and helpers for creating reusable Python generator components
+site_author: Peter Robinson
+repo_url: https://github.com/pjritee/generator_builder
+repo_name: pjritee/generator_builder
+edit_uri: edit/main/docs/
+
+theme:
+  name: readthedocs
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Guide:
+    - Getting Started: guide/getting_started.md
+    - Core Concepts: guide/concepts.md
+    - Usage Examples: guide/examples.md
+  - API Reference:
+    - Generator Builder: api/generator_builder.md
+    - Float Generator: api/float_generator.md
+  - Contributing: CONTRIBUTING.md
+  - License: LICENSE.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/pjritee/generator_builder
+
+copyright: Copyright &copy; 2026 Peter Robinson. MIT License.

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Generator factory utilities and helpers for creating reusable Python generator components" /><meta name="author" content="Peter Robinson" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>Generator Builder</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Home";
+        var mkdocs_page_input_path = "index.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> Generator Builder
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#repository-structure">Repository Structure</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="guide/getting_started/">Getting Started</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="guide/concepts/">Core Concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="guide/examples/">Usage Examples</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="api/generator_builder/">Generator Builder</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="api/float_generator/">Float Generator</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING/">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="LICENSE/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">Generator Builder</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Home</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/pjritee/generator_builder/edit/main/docs/index.md">Edit on pjritee/generator_builder</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="generator-builder">Generator Builder<a class="headerlink" href="#generator-builder" title="Permanent link">&para;</a></h1>
+<p>A small collection of generator-builder utilities and helpers for creating reusable Python generator components (for example, to drive PWM LEDs). This project evolved from the PWM example in the <code>RPi-Pico</code> repository.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p><strong>What:</strong> A set of tiny classes that build generator factories (sequencers, repeaters, choosers, take-while helpers) that produce generators when called and a collection of float-valued generator factories such as sine, sawtooth, square, constant.</p>
+<p><strong>Why:</strong> Make it easy to compose and reuse generator behavior across applications, with a MicroPython-friendly option by stripping type hints. By designing the <code>Tester</code> class, it is possible to write testers that communicate with other testers using a shared object. This could be used to program oscillations between the behaviors of collections of PWM-controlled LEDs.</p>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Generator Factories</strong>: Compose reusable generator patterns</li>
+<li><strong>Wave Generators</strong>: Built-in sine, square, and sawtooth wave generators</li>
+<li><strong>Flexible Control</strong>: Sequencing, repeating, random selection, and conditional testing</li>
+<li><strong>MicroPython Compatible</strong>: Strip type hints for constrained environments</li>
+<li><strong>Well Documented</strong>: Comprehensive docstrings and examples</li>
+</ul>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">CountTester</span>
+<span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+
+<span class="c1"># Create a sine wave that cycles 3 times</span>
+<span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Generate values</span>
+<span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sine</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="repository-structure">Repository Structure<a class="headerlink" href="#repository-structure" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generator_builder.py</code></td>
+<td>Core generator-builder classes and examples</td>
+</tr>
+<tr>
+<td><code>float_generator.py</code></td>
+<td>Float-producing generator factories</td>
+</tr>
+<tr>
+<td><code>generator_builder_mp.py</code></td>
+<td>MicroPython-compatible version</td>
+</tr>
+<tr>
+<td><code>float_generator_mp.py</code></td>
+<td>MicroPython-compatible float generators</td>
+</tr>
+<tr>
+<td><code>strip_type_hints.py</code></td>
+<td>Utility to remove type hints</td>
+</tr>
+<tr>
+<td><code>pwm_leds/</code></td>
+<td>PWM LED control examples</td>
+</tr>
+</tbody>
+</table>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>MIT License — see <a href="LICENSE/">LICENSE</a> for details.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="guide/getting_started/" class="btn btn-neutral float-right" title="Getting Started">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2026 Peter Robinson. MIT License.</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+      <span><a href="guide/getting_started/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="js/theme_extra.js"></script>
+    <script src="js/theme.js"></script>
+      <script src="search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.5.3
+Build Date UTC : 2026-02-02 23:23:53.408678+00:00
+-->
