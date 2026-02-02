@@ -50,6 +50,8 @@ evolved from the PWM example in the `RPi-Pico` repository.
 - For local automation, add a git `pre-push` hook that runs the strip script and
   stages the generated file before pushing. See `.git/hooks/pre-push`.
 
+**Documentation**
+The project documentation is available at [https://pjritee.github.io/generator_builder](https://pjritee.github.io/generator_builder)
 
 **License**
 - MIT — see the header in `generator_builder.py` for the full text.
