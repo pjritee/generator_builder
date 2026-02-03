@@ -20,6 +20,7 @@ nav:
   - API Reference:
     - Generator Builder: api/generator_builder.md
     - Float Generator: api/float_generator.md
+    - Generator Visualizer: api/generator_visualizer.md
   - Contributing: CONTRIBUTING.md
   - License: LICENSE.md
 
