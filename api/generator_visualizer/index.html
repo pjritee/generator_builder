@@ -70,7 +70,7 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#basic-usage">Basic Usage</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#loading-scripts">Loading Scripts</a>
+    <li class="toctree-l3"><a class="reference internal" href="#managing-scripts">Managing Scripts</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#controls">Controls</a>
     </li>
@@ -144,8 +144,8 @@
 <li><strong>Visualization</strong>: Plot generator output on a canvas</li>
 <li><strong>Interactive Controls</strong>: Run, stop, and clear graphs with button controls</li>
 <li><strong>Configurable Max Points</strong>: Adjust the maximum number of points before generator terminates (10-1000)</li>
+<li><strong>Configurable Every Nth point</strong>: Plot only every Nth point (1-100). Along with Max Points this determines how far through the generator the visualizer gets.</li>
 <li><strong>Statistics Display</strong>: View point count, minimum, maximum, and average values</li>
-<li><strong>Threading</strong>: Generators run on a separate thread to keep UI responsive</li>
 <li><strong>File Loading</strong>: Load Python scripts with a <code>get_generator()</code> method</li>
 </ul>
 <h2 id="running-the-visualizer">Running the Visualizer<a class="headerlink" href="#running-the-visualizer" title="Permanent link">&para;</a></h2>
@@ -169,8 +169,10 @@
 <li>The result appears on the canvas with axes and gridlines</li>
 <li>Statistics display shows point count, min/max/average values</li>
 </ol>
-<h3 id="loading-scripts">Loading Scripts<a class="headerlink" href="#loading-scripts" title="Permanent link">&para;</a></h3>
+<h3 id="managing-scripts">Managing Scripts<a class="headerlink" href="#managing-scripts" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Load Script</strong> to browse and load a Python file that contains a <code>get_generator()</code> function. The file contents replace the editor code.</p>
+<p>Click <strong>Reload Script</strong> to reload the currently opened script from disk. This allows the user to user their editor of choice - make changes, save, reload into visualizer.</p>
+<p>Click <strong>Save Script</strong> to save the current script.</p>
 <h3 id="controls">Controls<a class="headerlink" href="#controls" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Run</strong>: Execute the generator code and visualize output</li>
