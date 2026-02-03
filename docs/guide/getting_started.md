@@ -9,7 +9,7 @@ Generator Builder is a pure Python module. To use it in your project:
 ```bash
 # Copy the files to your project
 cp generator_builder.py your_project/
-cp float_generator.py your_project/
+cp waveforms.py your_project/
 ```
 
 ### MicroPython
@@ -19,8 +19,8 @@ For use on Raspberry Pi Pico or other MicroPython environments:
 ```bash
 # Generate MicroPython-compatible versions
 python3 strip_type_hints.py generator_builder.py generator_builder_mp.py
-python3 strip_type_hints.py float_generator.py float_generator_mp.py
-
+python3 strip_type_hints.py waveforms.py waveforms_mp.py
+s
 # Copy the _mp.py files to your device
 ```
 
@@ -37,7 +37,7 @@ This runs comprehensive tests of all generator factory classes and demonstrates 
 ### Float Generator Tests
 
 ```bash
-python3 float_generator.py
+python3 waveforms.py
 ```
 
 This tests all waveform generators and validates output ranges.
@@ -86,7 +86,7 @@ print(list(seq()))   # [1, 1, 1, 2, 2]
 Use built-in waveform generators to produce values from the waveform:
 
 ```python
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 
 # Create a sine wave with 16 steps per cycle
 sine = sine_wave_factory(16)

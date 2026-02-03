@@ -5,7 +5,7 @@
 Smoothly fade a LED up and down:
 
 ```python
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 from generator_builder import Repeater
 
 # Create infinite sine wave cycles
@@ -21,7 +21,7 @@ for brightness in sine():  # runs indefinitely
 Control multiple LEDs with different waveforms:
 
 ```python
-from float_generator import sine_wave_factory, square_wave_factory
+from waveforms import sine_wave_factory, square_wave_factory
 from generator_builder import Repeater
 
 # LED 1: smooth sine wave
@@ -48,7 +48,7 @@ from generator_builder import (
     Sequencer, TakeWhile, TimeoutTester,
     ConstantFor
 )
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 
 # Run for 5 seconds max
 tester = TimeoutTester(5.0)
@@ -74,7 +74,7 @@ Alternate between patterns randomly:
 from generator_builder import (
     Repeater, Chooser, TakeWhile, CountTester
 )
-from float_generator import (
+from waveforms import (
     sine_wave_factory, square_wave_factory,
     sawtooth_wave_factory
 )
@@ -100,9 +100,7 @@ for value in sequence():
 Create pulses with random lengths:
 
 ```python
-from generator_builder import (
-    RandomRepeater, ConstantFor, Sequencer
-)
+from generator_builder import RandomRepeater, ConstantFor, Sequencer
 
 # One pulse: high then low
 pulse = Sequencer([
@@ -125,7 +123,7 @@ Control PWM LEDs on Raspberry Pi Pico:
 ```python
 from machine import Pin, PWM
 import generator_builder_mp as gb
-import float_generator_mp as fg
+import waveform_mp as fg
 
 # Setup PWM
 led = PWM(Pin(15))
@@ -145,7 +143,7 @@ for brightness in sine():
 Offset different LEDs for visual effect:
 
 ```python
-from float_generator_mp import sine_wave_factory
+from waveforms_mp import sine_wave_factory
 from generator_builder_mp import Repeater
 
 led_configs = [
@@ -171,7 +169,7 @@ while True:
 Classic "breathing" effect using sine wave:
 
 ```python
-from float_generator_mp import sine_wave_factory
+from waveforms_mp import sine_wave_factory
 from generator_builder_mp import Repeater
 import time
 

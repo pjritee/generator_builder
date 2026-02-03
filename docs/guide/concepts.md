@@ -153,7 +153,7 @@ class FlagTester(Tester):
 Float generators produce smooth varying values useful for PWM control:
 
 ```python
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 
 # Create a sine wave
 sine = sine_wave_factory(100)  # 100 steps per cycle

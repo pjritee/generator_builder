@@ -30,11 +30,11 @@ cd generator_builder
 
 # Run tests
 python3 generator_builder.py
-python3 float_generator.py
+python3 waveforms.py
 
 # Generate MicroPython versions
 python3 strip_type_hints.py generator_builder.py generator_builder_mp.py
-python3 strip_type_hints.py float_generator.py float_generator_mp.py
+python3 strip_type_hints.py waveforms.py waveforms_mp.py
 ```
 
 ## Code Style

@@ -1,8 +1,8 @@
-# Float Generator API
+# Waveforms API
 
-Complete API reference for the float generator module.
+Complete API reference for the waveforms module.
 
-See [float_generator.py](https://github.com/pjritee/generator_builder/blob/main/float_generator.py) for the source code and comprehensive docstrings.
+See [waveform.py](https://github.com/pjritee/generator_builder/blob/main/waveforms.py) for the source code and comprehensive docstrings.
 
 
 ## GeneratorFactoryFromFunctionform Functions
@@ -30,6 +30,6 @@ Convenience functions to create GeneratorFactoryFromFunction generators with spe
 All classes and functions include comprehensive docstrings accessible via Python's `help()` function:
 
 ```python
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 help(sine_wave_factory)
 ```

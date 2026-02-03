@@ -4,7 +4,7 @@ Interactive TkInter application for visualizing generator output.
 
 ## Overview
 
-The Generator Visualizer provides a graphical user interface for testing and visualizing generators from the `generator_builder` and `float_generator` modules. It allows users to write Python code directly or load scripts that define generators, then see their output plotted on a canvas.
+The Generator Visualizer provides a graphical user interface for testing and visualizing generators from the `generator_builder` and `waveform` modules. It allows users to write Python code directly or load scripts that define generators, then see their output plotted on a canvas.
 
 ## Features
 
@@ -101,7 +101,7 @@ def get_generator():
 
 - Python 3.6+
 - tkinter (included with most Python installations)
-- generator_builder and float_generator modules
+- generator_builder and waveform modules
 
 ## Class Reference
 

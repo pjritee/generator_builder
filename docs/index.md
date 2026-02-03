@@ -20,7 +20,7 @@ A small collection of generator-builder utilities and helpers for creating reusa
 
 ```python
 from generator_builder import Constant, RepeaterFor, TakeWhile, CountTester
-from float_generator import sine_wave_factory
+from waveforms import sine_wave_factory
 
 # Create a sine wave that cycles 3 times
 sine = sine_wave_factory(16, runs=3)
@@ -35,9 +35,9 @@ for value in sine():
 | File | Purpose |
 |------|---------|
 | `generator_builder.py` | Core generator-builder classes and examples |
-| `float_generator.py` | Float-producing generator factories |
+| `waveforms.py` | Float-producing generator factories |
 | `generator_builder_mp.py` | MicroPython-compatible version |
-| `float_generator_mp.py` | MicroPython-compatible float generators |
+| `waveforms_mp.py` | MicroPython-compatible float generators |
 | `strip_type_hints.py` | Utility to remove type hints |
 | `pwm_leds/` | PWM LED control examples |
 

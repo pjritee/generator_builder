@@ -19,7 +19,7 @@ nav:
     - Usage Examples: guide/examples.md
   - API Reference:
     - Generator Builder: api/generator_builder.md
-    - Float Generator: api/float_generator.md
+    - Float Generator: api/waveforms.md
     - Generator Visualizer: api/generator_visualizer.md
   - Contributing: CONTRIBUTING.md
   - License: LICENSE.md
