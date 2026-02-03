@@ -31,7 +31,7 @@ from machine import Pin, PWM
 import time
 import random
 import math
-import float_generator_mp as fg
+import waveform_mp as fg
 import generator_builder_mp as gb
 
 MAX_DUTY = 65535

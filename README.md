@@ -16,7 +16,7 @@ evolved from the PWM example in the `RPi-Pico` repository.
 **Repository Files**
 - **generator_builder.py:** Core generator-builder classes and example
   usage and tests.
-- **float_generator.py:** Concrete float-producing generator factories such as sine, sawtooth,
+- **waveforms.py:** Concrete float-producing generator factories such as sine, sawtooth,
   square, constant, constant-for.
 - **generator_visualizer.py:** TkInter GUI application for testing and visualizing generators.
 - **strip_type_hints.py:** Tool to remove Python type hints and `typing`
@@ -33,7 +33,7 @@ evolved from the PWM example in the `RPi-Pico` repository.
 - Run the float generator checks:
 
   ```bash
-  python3 float_generator.py
+  python3 waveforms.py
   ```
 
 - Launch the Generator Visualizer (TkInter GUI):

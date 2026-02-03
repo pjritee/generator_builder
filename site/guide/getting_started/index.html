@@ -86,7 +86,7 @@
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../../api/generator_builder/">Generator Builder</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../api/float_generator/">Float Generator</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../api/waveforms/">Float Generator</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../api/generator_visualizer/">Generator Visualizer</a>
                   </li>
@@ -130,14 +130,14 @@
 <h3 id="standard-python">Standard Python<a class="headerlink" href="#standard-python" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Copy the files to your project</span>
 cp<span class="w"> </span>generator_builder.py<span class="w"> </span>your_project/
-cp<span class="w"> </span>float_generator.py<span class="w"> </span>your_project/
+cp<span class="w"> </span>waveforms.py<span class="w"> </span>your_project/
 </code></pre></div>
 <h3 id="micropython">MicroPython<a class="headerlink" href="#micropython" title="Permanent link">&para;</a></h3>
 <p>For use on Raspberry Pi Pico or other MicroPython environments:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Generate MicroPython-compatible versions</span>
 python3<span class="w"> </span>strip_type_hints.py<span class="w"> </span>generator_builder.py<span class="w"> </span>generator_builder_mp.py
-python3<span class="w"> </span>strip_type_hints.py<span class="w"> </span>float_generator.py<span class="w"> </span>float_generator_mp.py
-
+python3<span class="w"> </span>strip_type_hints.py<span class="w"> </span>waveforms.py<span class="w"> </span>waveforms_mp.py
+s
 <span class="c1"># Copy the _mp.py files to your device</span>
 </code></pre></div>
 <h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
@@ -146,7 +146,7 @@ python3<span class="w"> </span>strip_type_hints.py<span class="w"> </span>float_
 </code></pre></div>
 <p>This runs comprehensive tests of all generator factory classes and demonstrates their usage.</p>
 <h3 id="float-generator-tests">Float Generator Tests<a class="headerlink" href="#float-generator-tests" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>float_generator.py
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>waveforms.py
 </code></pre></div>
 <p>This tests all waveform generators and validates output ranges.</p>
 <h2 id="basic-concepts">Basic Concepts<a class="headerlink" href="#basic-concepts" title="Permanent link">&para;</a></h2>
@@ -181,7 +181,7 @@ python3<span class="w"> </span>strip_type_hints.py<span class="w"> </span>float_
 </code></pre></div>
 <h3 id="wave-forms">Wave forms<a class="headerlink" href="#wave-forms" title="Permanent link">&para;</a></h3>
 <p>Use built-in waveform generators to produce values from the waveform:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveforms</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 
 <span class="c1"># Create a sine wave with 16 steps per cycle</span>
 <span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>

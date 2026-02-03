@@ -24,7 +24,7 @@ Key variables & behaviour (see implementation in [pwm_leds.py](pwm_leds/pwm_leds
 - Button on Pin 16 toggles the active control set (debounced in software, ~500 ms).
 
 Dependencies
-- This script uses the local modules `float_generator_mp.py` and `generator_builder_mp.py` which are included in the repository. It expects to run on MicroPython (Raspberry Pi Pico / RP2040).
+- This script uses the local modules `waveform_mp.py` and `generator_builder_mp.py` which are included in the repository. It expects to run on MicroPython (Raspberry Pi Pico / RP2040).
 
 Usage
 - Copy the repository files to your Pico (via Thonny, rshell, ampy, mpremote, etc.).
