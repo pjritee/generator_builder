@@ -74,7 +74,7 @@
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../../api/generator_builder/">Generator Builder</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../api/float_generator/">Float Generator</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../api/waveforms/">Float Generator</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../api/generator_visualizer/">Generator Visualizer</a>
                   </li>
@@ -115,7 +115,7 @@
                 <h1 id="usage-examples">Usage Examples<a class="headerlink" href="#usage-examples" title="Permanent link">&para;</a></h1>
 <h2 id="led-brightness-control">LED Brightness Control<a class="headerlink" href="#led-brightness-control" title="Permanent link">&para;</a></h2>
 <p>Smoothly fade a LED up and down:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveform</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 <span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Repeater</span>
 
 <span class="c1"># Create infinite sine wave cycles</span>
@@ -127,7 +127,7 @@
 </code></pre></div>
 <h2 id="multiple-leds-with-different-patterns">Multiple LEDs with Different Patterns<a class="headerlink" href="#multiple-leds-with-different-patterns" title="Permanent link">&para;</a></h2>
 <p>Control multiple LEDs with different waveforms:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span><span class="p">,</span> <span class="n">square_wave_factory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveform</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span><span class="p">,</span> <span class="n">square_wave_factory</span>
 <span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Repeater</span>
 
 <span class="c1"># LED 1: smooth sine wave</span>
@@ -149,7 +149,7 @@
     <span class="n">Sequencer</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">TimeoutTester</span><span class="p">,</span>
     <span class="n">ConstantFor</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<span class="kn">from</span> <span class="nn">waveform</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 
 <span class="c1"># Run for 5 seconds max</span>
 <span class="n">tester</span> <span class="o">=</span> <span class="n">TimeoutTester</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
@@ -171,7 +171,7 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Repeater</span><span class="p">,</span> <span class="n">Chooser</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">CountTester</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">waveform</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">sine_wave_factory</span><span class="p">,</span> <span class="n">square_wave_factory</span><span class="p">,</span>
     <span class="n">sawtooth_wave_factory</span>
 <span class="p">)</span>
@@ -212,7 +212,7 @@
 <p>Control PWM LEDs on Raspberry Pi Pico:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">machine</span> <span class="kn">import</span> <span class="n">Pin</span><span class="p">,</span> <span class="n">PWM</span>
 <span class="kn">import</span> <span class="nn">generator_builder_mp</span> <span class="k">as</span> <span class="nn">gb</span>
-<span class="kn">import</span> <span class="nn">float_generator_mp</span> <span class="k">as</span> <span class="nn">fg</span>
+<span class="kn">import</span> <span class="nn">waveform_mp</span> <span class="k">as</span> <span class="nn">fg</span>
 
 <span class="c1"># Setup PWM</span>
 <span class="n">led</span> <span class="o">=</span> <span class="n">PWM</span><span class="p">(</span><span class="n">Pin</span><span class="p">(</span><span class="mi">15</span><span class="p">))</span>
@@ -228,7 +228,7 @@
 </code></pre></div>
 <h2 id="synchronized-multi-led-control">Synchronized Multi-LED Control<a class="headerlink" href="#synchronized-multi-led-control" title="Permanent link">&para;</a></h2>
 <p>Offset different LEDs for visual effect:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">float_generator_mp</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveform_mp</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 <span class="kn">from</span> <span class="nn">generator_builder_mp</span> <span class="kn">import</span> <span class="n">Repeater</span>
 
 <span class="n">led_configs</span> <span class="o">=</span> <span class="p">[</span>
@@ -250,7 +250,7 @@
 </code></pre></div>
 <h2 id="breathing-led-effect">Breathing LED Effect<a class="headerlink" href="#breathing-led-effect" title="Permanent link">&para;</a></h2>
 <p>Classic "breathing" effect using sine wave:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">float_generator_mp</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveform_mp</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 <span class="kn">from</span> <span class="nn">generator_builder_mp</span> <span class="kn">import</span> <span class="n">Repeater</span>
 <span class="kn">import</span> <span class="nn">time</span>
 

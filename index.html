@@ -68,7 +68,7 @@
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="api/generator_builder/">Generator Builder</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="api/float_generator/">Float Generator</a>
+                  <li class="toctree-l1"><a class="reference internal" href="api/waveforms/">Float Generator</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="api/generator_visualizer/">Generator Visualizer</a>
                   </li>
@@ -120,7 +120,7 @@
 </ul>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">CountTester</span>
-<span class="kn">from</span> <span class="nn">float_generator</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
+<span class="kn">from</span> <span class="nn">waveform</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 
 <span class="c1"># Create a sine wave that cycles 3 times</span>
 <span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
@@ -143,7 +143,7 @@
 <td>Core generator-builder classes and examples</td>
 </tr>
 <tr>
-<td><code>float_generator.py</code></td>
+<td><code>waveform.py</code></td>
 <td>Float-producing generator factories</td>
 </tr>
 <tr>
@@ -151,7 +151,7 @@
 <td>MicroPython-compatible version</td>
 </tr>
 <tr>
-<td><code>float_generator_mp.py</code></td>
+<td><code>waveform_mp.py</code></td>
 <td>MicroPython-compatible float generators</td>
 </tr>
 <tr>
@@ -215,5 +215,5 @@
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2026-02-03 07:34:41.625897+00:00
+Build Date UTC : 2026-02-03 20:19:09.293342+00:00
 -->
