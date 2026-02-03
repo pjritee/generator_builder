@@ -18,7 +18,7 @@ evolved from the PWM example in the `RPi-Pico` repository.
   usage and tests.
 - **float_generator.py:** Concrete float-producing generator factories such as sine, sawtooth,
   square, constant, constant-for.
-- **generator_visualizer.py:** TkInter GUI application for testing and visualizing generators in real-time.
+- **generator_visualizer.py:** TkInter GUI application for testing and visualizing generators.
 - **strip_type_hints.py:** Tool to remove Python type hints and `typing`
   imports to produce MicroPython-compatible source.
 - **.gitignore:** Ignores Python cache files and pytest cache.
@@ -44,7 +44,7 @@ evolved from the PWM example in the `RPi-Pico` repository.
 
   The visualizer provides:
   - **Code Editor**: Write or load Python code with a `get_generator()` function
-  - **Live Canvas**: Real-time visualization of generator output as a waveform
+  - **Live Canvas**: Visualization of generator output
   - **Interactive Controls**: Run, stop, and clear graphs; adjust max points (10-1000); adjust nth points (1-100)
   - **Statistics**: View point count, min, max, and average values
   - **File Loading**: Load, reload, save generator scripts
