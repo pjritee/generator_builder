@@ -45,9 +45,9 @@ evolved from the PWM example in the `RPi-Pico` repository.
   The visualizer provides:
   - **Code Editor**: Write or load Python code with a `get_generator()` function
   - **Live Canvas**: Real-time visualization of generator output as a waveform
-  - **Interactive Controls**: Run, stop, and clear graphs; adjust max points (10-10000)
+  - **Interactive Controls**: Run, stop, and clear graphs; adjust max points (10-1000); adjust nth points (1-100)
   - **Statistics**: View point count, min, max, and average values
-  - **File Loading**: Load generator scripts from disk
+  - **File Loading**: Load, reload, save generator scripts
   
   See the [full documentation](https://pjritee.github.io/generator_builder/api/generator_visualizer/) for examples and usage details.
 
