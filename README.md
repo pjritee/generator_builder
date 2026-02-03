@@ -44,7 +44,7 @@ evolved from the PWM example in the `RPi-Pico` repository.
 
   The visualizer provides:
   - **Code Editor**: Write or load Python code with a `get_generator()` function
-  - **Live Canvas**: Visualization of generator output
+  - **Canvas**: Visualization of generator output
   - **Interactive Controls**: Run, stop, and clear graphs; adjust max points (10-1000); adjust nth points (1-100)
   - **Statistics**: View point count, min, max, and average values
   - **File Loading**: Load, reload, save generator scripts
