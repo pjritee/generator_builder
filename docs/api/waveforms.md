@@ -5,7 +5,7 @@ Complete API reference for the waveforms module.
 See [waveform.py](https://github.com/pjritee/generator_builder/blob/main/waveforms.py) for the source code and comprehensive docstrings.
 
 
-## GeneratorFactoryFromFunctionform Functions
+## GeneratorFactoryFromFunction Functions
 
 These functions map [0, 1] to [0, 1] and are used by the GeneratorFactoryFromFunction class:
 
@@ -15,7 +15,7 @@ These functions map [0, 1] to [0, 1] and are used by the GeneratorFactoryFromFun
 
 ## Factory Functions
 
-Convenience functions to create GeneratorFactoryFromFunction generators with specific waveforms:
+Convenience functions to create GeneratorFactoryFunction generators with specific waveforms:
 
 - `sine_wave_factory(steps, offset=0.0, runs=1)` - Create a sine wave generator
 - `square_wave_factory(steps, offset=0.0, runs=1)` - Create a square wave generator
