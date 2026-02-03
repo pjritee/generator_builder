@@ -12,8 +12,8 @@ The Generator Visualizer provides a graphical user interface for testing and vis
 - **Visualization**: Plot generator output on a canvas
 - **Interactive Controls**: Run, stop, and clear graphs with button controls
 - **Configurable Max Points**: Adjust the maximum number of points before generator terminates (10-1000)
+- **Configurable Every Nth point**: Plot only every Nth point (1-100). Along with Max Points this determines how far through the generator the visualizer gets.
 - **Statistics Display**: View point count, minimum, maximum, and average values
-- **Threading**: Generators run on a separate thread to keep UI responsive
 - **File Loading**: Load Python scripts with a `get_generator()` method
 
 ## Running the Visualizer
@@ -43,9 +43,13 @@ def get_generator():
 3. The result appears on the canvas with axes and gridlines
 4. Statistics display shows point count, min/max/average values
 
-### Loading Scripts
+### Managing Scripts
 
 Click **Load Script** to browse and load a Python file that contains a `get_generator()` function. The file contents replace the editor code.
+
+Click **Reload Script** to reload the currently opened script from disk. This allows the user to user their editor of choice - make changes, save, reload into visualizer.
+
+Click **Save Script** to save the current script.
 
 ### Controls
 

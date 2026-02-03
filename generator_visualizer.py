@@ -19,7 +19,6 @@ Or load a script with a get_generator() function that returns a generator.
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-import threading
 import math
 from pathlib import Path
 from typing import Generator, Optional, Callable
@@ -36,12 +35,14 @@ class GeneratorVisualizer:
         """
         self.root = root
         self.root.title("Generator Visualizer")
-        self.root.geometry("1200x700")
+        self.root.geometry("1600x700")
         
         self.generator: Optional[Generator] = None
         self.running = False
         self.current_values: list = []
         self.max_points = 500
+        self.every_nth = 10
+        self.filepath = None
         
         self._setup_ui()
     
@@ -61,9 +62,12 @@ class GeneratorVisualizer:
         
         ttk.Label(editor_top, text="Python Code:").pack(side=tk.LEFT, padx=5)
         ttk.Button(editor_top, text="Load Script", command=self._load_script).pack(side=tk.LEFT, padx=2)
+        ttk.Button(editor_top, text="Reload Script", command=self._reload_load_script).pack(side=tk.LEFT, padx=2)
         ttk.Button(editor_top, text="Save File", command=self._save_script).pack(side=tk.LEFT, padx=2)
         ttk.Button(editor_top, text="Clear", command=self._clear_editor).pack(side=tk.LEFT, padx=2)
-        
+        # File status label
+        self.file_status_label = ttk.Label(editor_top, text="", foreground="blue")
+        self.file_status_label.pack(side=tk.LEFT, padx=20)
         # Text editor with scrollbar
         editor_frame = ttk.Frame(left_frame)
         editor_frame.pack(fill=tk.BOTH, expand=True)
@@ -81,7 +85,7 @@ class GeneratorVisualizer:
         
         # Right panel: Visualization
         right_frame = ttk.Frame(paned)
-        paned.add(right_frame, weight=1)
+        paned.add(right_frame, weight=15)
         
         # Controls
         controls_frame = ttk.Frame(right_frame)
@@ -103,6 +107,19 @@ class GeneratorVisualizer:
             command=self._update_max_points
         )
         max_points_spinbox.pack(side=tk.LEFT, padx=2)
+
+        # Every Nth control
+        ttk.Label(controls_frame, text="Every Nth:").pack(side=tk.LEFT, padx=(20, 5))
+        self.every_nth_var = tk.IntVar(value=self.every_nth)
+        every_nth_spinbox = ttk.Spinbox(
+            controls_frame, 
+            from_=1, 
+            to=100, 
+            textvariable=self.every_nth_var,
+            width=8,
+            command=lambda: setattr(self, 'every_nth', self.every_nth_var.get())
+        )
+        every_nth_spinbox.pack(side=tk.LEFT, padx=2)
         
         # Status label
         self.status_label = ttk.Label(controls_frame, text="Ready", foreground="blue")
@@ -158,12 +175,27 @@ def get_generator():
             try:
                 with open(filepath, 'r') as f:
                     content = f.read()
+                self.filepath = filepath
                 self.code_editor.delete("1.0", tk.END)
                 self.code_editor.insert("1.0", content)
-                self._update_status(f"Loaded: {Path(filepath).name}", "green")
+                self._update_file_status(f"Loaded: {Path(filepath).name}", "green")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load script: {e}")
     
+    def _reload_load_script(self) -> None:
+        """Reload the currently loaded script."""
+        if self.filepath:
+            try:
+                with open(self.filepath, 'r') as f:
+                    content = f.read()
+                self.code_editor.delete("1.0", tk.END)
+                self.code_editor.insert("1.0", content)
+                self._update_file_status(f"Reloaded: {Path(self.filepath).name}", "green")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to reload script: {e}")
+        else:
+            messagebox.showinfo("Info", "No script loaded to reload")
+
     def _save_script(self) -> None:
         """Save the current editor content to a Python file."""
         filepath = filedialog.asksaveasfilename(
@@ -177,7 +209,7 @@ def get_generator():
                 content = self.code_editor.get("1.0", tk.END)
                 with open(filepath, 'w') as f:
                     f.write(content)
-                self._update_status(f"Saved: {Path(filepath).name}", "green")
+                self._update_file_status(f"Saved: {Path(filepath).name}", "green")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save script: {e}")
     
@@ -214,9 +246,7 @@ def get_generator():
             messagebox.showerror("Error", "Please enter Python code")
             return
         
-        # Run in separate thread to avoid blocking UI
-        thread = threading.Thread(target=self._execute_generator, args=(code,), daemon=True)
-        thread.start()
+        self._execute_generator(code)
     
     def _execute_generator(self, code: str) -> None:
         """Execute the generator code and visualize output.
@@ -249,7 +279,7 @@ def get_generator():
             gen = get_generator()
             
             # Consume generator values
-            for value in gen:
+            for index, value in enumerate(gen):
                 if not self.running:
                     break
                 
@@ -259,15 +289,17 @@ def get_generator():
                 except (ValueError, TypeError):
                     continue
                 
-                self.current_values.append(float_value)
+                if index % self.every_nth == 0:
+                    self.current_values.append(float_value)
                 
                 # Update canvas periodically
-                if len(self.current_values) % 10 == 0:
-                    self.root.after(0, self._redraw_canvas)
+                #if len(self.current_values) % 10 == 0:
+                #    self.root.after(0, self._redraw_canvas)
                 
                 # Stop when max_points is reached
                 if len(self.current_values) >= self.max_points:
                     break
+                
             
             # Final redraw
             self.root.after(0, self._redraw_canvas)
@@ -375,6 +407,15 @@ def get_generator():
         """
         self.status_label.config(text=message, foreground=color)
     
+    def _update_file_status(self, message: str, color: str = "blue") -> None:
+        """Update the file status label.
+        
+        Args:
+            message: Status message to display.
+            color: Text color for the message.
+        """
+        self.file_status_label.config(text=message, foreground=color)   
+
     def _on_canvas_resize(self, event) -> None:
         """Handle canvas resize event."""
         if self.current_values:

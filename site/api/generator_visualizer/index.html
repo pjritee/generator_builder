@@ -143,7 +143,7 @@
 <li><strong>Code Editor</strong>: Write or load Python code with a <code>get_generator()</code> function</li>
 <li><strong>Visualization</strong>: Plot generator output on a canvas</li>
 <li><strong>Interactive Controls</strong>: Run, stop, and clear graphs with button controls</li>
-<li><strong>Configurable Max Points</strong>: Adjust the maximum number of points before generator terminates (10-10000)</li>
+<li><strong>Configurable Max Points</strong>: Adjust the maximum number of points before generator terminates (10-1000)</li>
 <li><strong>Statistics Display</strong>: View point count, minimum, maximum, and average values</li>
 <li><strong>Threading</strong>: Generators run on a separate thread to keep UI responsive</li>
 <li><strong>File Loading</strong>: Load Python scripts with a <code>get_generator()</code> method</li>
@@ -166,7 +166,7 @@
 </code></pre></div>
 <ol>
 <li>Click <strong>Run</strong> to execute the generator and visualize output</li>
-<li>The waveform appears on the canvas with axes and gridlines</li>
+<li>The result appears on the canvas with axes and gridlines</li>
 <li>Statistics display shows point count, min/max/average values</li>
 </ol>
 <h3 id="loading-scripts">Loading Scripts<a class="headerlink" href="#loading-scripts" title="Permanent link">&para;</a></h3>
@@ -176,7 +176,7 @@
 <li><strong>Run</strong>: Execute the generator code and visualize output</li>
 <li><strong>Stop</strong>: Terminate a running generator</li>
 <li><strong>Clear Graph</strong>: Clear the canvas and reset statistics</li>
-<li><strong>Max Points</strong>: Spinbox to set the point limit (10-10000, default 500)</li>
+<li><strong>Max Points</strong>: Spinbox to set the point limit (10-1000, default 500)</li>
 </ul>
 <h2 id="example-generators">Example Generators<a class="headerlink" href="#example-generators" title="Permanent link">&para;</a></h2>
 <h3 id="sine-wave">Sine Wave<a class="headerlink" href="#sine-wave" title="Permanent link">&para;</a></h3>
@@ -216,18 +216,22 @@
 <h2 id="class-reference">Class Reference<a class="headerlink" href="#class-reference" title="Permanent link">&para;</a></h2>
 <h3 id="generatorvisualizer">GeneratorVisualizer<a class="headerlink" href="#generatorvisualizer" title="Permanent link">&para;</a></h3>
 <p>Main application class managing the UI and generator execution.</p>
-<p><strong>Attributes:</strong>
-- <code>generator</code>: Currently loaded generator instance
-- <code>running</code>: Boolean indicating if generator is executing
-- <code>current_values</code>: List of plotted values
-- <code>max_points</code>: Maximum points before generator terminates (default: 500)</p>
-<p><strong>Methods:</strong>
-- <code>_run_generator()</code>: Execute generator from code editor
-- <code>_stop_generator()</code>: Terminate running generator
-- <code>_clear_graph()</code>: Clear visualization and statistics
-- <code>_load_script()</code>: Load Python script from file
-- <code>_redraw_canvas()</code>: Update visualization with current data
-- <code>_update_max_points()</code>: Update max_points from spinbox</p>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><code>generator</code>: Currently loaded generator instance</li>
+<li><code>running</code>: Boolean indicating if generator is executing</li>
+<li><code>current_values</code>: List of plotted values</li>
+<li><code>max_points</code>: Maximum points before generator terminates (default: 500)</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<ul>
+<li><code>_run_generator()</code>: Execute generator from code editor</li>
+<li><code>_stop_generator()</code>: Terminate running generator</li>
+<li><code>_clear_graph()</code>: Clear visualization and statistics</li>
+<li><code>_load_script()</code>: Load Python script from file</li>
+<li><code>_redraw_canvas()</code>: Update visualization with current data</li>
+<li><code>_update_max_points()</code>: Update max_points from spinbox</li>
+</ul>
 <h2 id="graph-display">Graph Display<a class="headerlink" href="#graph-display" title="Permanent link">&para;</a></h2>
 <p>The visualization canvas includes:</p>
 <ul>
