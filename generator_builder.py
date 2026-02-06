@@ -29,8 +29,8 @@ and return new factories that combine them in useful ways (sequencing, repeating
 Example:
     Create and compose generators:
     
-    >>> constant_seq_gen = Sequencer([ConstantFor(1.0,2), ConstantFor(0.0,1)])
-    >>> repeater = RepeaterFor(2, constant_seq_gen)
+    >>> constant_seq_gen = Sequencer([Constant(1.0,2), Constant(0.0,1)])
+    >>> repeater = Repeater(constant_seq_gen, 2)
     >>> for value in repeater():
     ...     print(value)
     1.0
@@ -39,6 +39,10 @@ Example:
     1.0
     1.0
     0.0  
+
+Note: Throughout the documentation there is a slight abuse of notation. When we say "yields from a generator factory"
+we really mean "yields from a generator created by calling the generator factory"
+
 """
 import sys
 import random
@@ -95,30 +99,30 @@ class GeneratorFactory[T]:
 class Sequencer[T](GeneratorFactory[T]):
     """Chains multiple generators sequentially.
     
-    When called, returns a generator that yields all values from an instance of the first generator factory,
-    then all values from an instance of the second, and so on. Each generator factory is called once to create
+    When called, returns a generator factory that yields all values from the first generator factory,
+    then all values from the second, and so on. Each generator factory is called once to create
     a fresh generator.
     
     Note: Each generator (except possibly the last) should be finite, otherwise the sequencer
     will never move on to the next generator.
     
     Args:
-        generators: A list of generator factory callables that return generators.
+        factories: A list of generator factory callables that return generators.
         
     Example:
-        >>> gen1 = ConstantFor(1, 2)  # Yield 1 twice
-        >>> gen2 = ConstantFor(2, 2)  # Yield 2 twice
-        >>> seq = Sequencer([gen1, gen2])
+        >>> fact1 = ConstantFor(1, 2)  # Yield 1 twice
+        >>> fact2 = ConstantFor(2, 2)  # Yield 2 twice
+        >>> seq = Sequencer([fact1, fact2])
         >>> list(seq())
         [1, 1, 2, 2]
     """
-    def __init__(self, generators: list[Callable[[], Generator[T,None,None]]]):
+    def __init__(self, factories: list[Callable[[], Generator[T,None,None]]]):
         """Initialize the Sequencer.
         
         Args:
-            generators: A list of generator factory callables.
+            factories: A list of generator factories.
         """
-        self.generators = generators
+        self.factories = factories
     
     def _generate(self) -> Generator[T,None,None]:
         """Yield values from each generator in sequence.
@@ -126,239 +130,307 @@ class Sequencer[T](GeneratorFactory[T]):
         Yields:
             Values from the  generator instance from each generator factory in order.
         """
-        for generator in self.generators:
-            yield from generator()
+        for factory in self.factories:
+            yield from factory()
 
 class Chooser[T](GeneratorFactory[T]):
-    """Randomly selects one generator and yields all its values.
+    """Randomly selects one factory and yields all the values from that factory.
     
-    When called, randomly chooses one generator factory from the list and returns a generator
-    that yields all values from an instance of the chosen generator factory. Each call to the Chooser factory will
+    When called, randomly chooses one generator factory from the list and returns a generator factory
+    that yields all values from the chosen generator factory. Each call to the Chooser factory will
     make a new random selection.
     
     Args:
-        generators: A list of generator factory callables to choose from.
+        factories: A list of generator factories to choose from.
         
     Example:
-        >>> gen1 = ConstantFor(1, 2)
-        >>> gen2 = ConstantFor(2, 2)
-        >>> chooser = Chooser([gen1, gen2])
+        >>> fact1 = ConstantFor(1, 2)
+        >>> fact2 = ConstantFor(2, 2)
+        >>> chooser = Chooser([fact1, fact2])
         >>> # Result is either [1, 1] or [2, 2], chosen randomly
         >>> list(chooser())
     """
-    def __init__(self, generators: list[Callable[[], Generator[T,None,None]]]):
+    def __init__(self, factories: list[Callable[[], Generator[T,None,None]]]):
         """Initialize the Chooser.
         
         Args:
-            generators: A list of generator factory callables.
+            factories: A list of generator factories.
         """
-        self.generators = generators
+        self.factories = factories
     
     def _generate(self) -> Generator[T,None,None]:
-        """Randomly select and yield from one generator.
+        """Randomly select and yield from one generator factory.
         
         Yields:
             All values from a randomly selected generator factory call.
         """
-        yield from random.choice(self.generators)()
-
-class RepeaterFor[T](GeneratorFactory[T]):
-    """Repeats a generator a fixed number of times.
-    
-    When called, returns a generator that yields from the supplied generator factory the specified
-    number of times. Each repetition uses a fresh generator from the factory.
-    
-    Note: Each generator produced from the supplied factory should be finite, otherwise the repeater is redundant.
-    
-    Args:
-        number: The number of times to repeat the generator.
-        generator: A generator factory callable that produces generators.
-        
-    Example:
-        >>> gen = ConstantFor(1, 2)  # Yield 1 twice
-        >>> repeater = RepeaterFor(3, gen)  # Repeat 3 times
-        >>> list(repeater())
-        [1, 1, 1, 1, 1, 1]
-    """
-    def __init__(self, number: int, generator: Callable[[], Generator[T,None,None]]):
-        """Initialize the RepeaterFor.
-        
-        Args:
-            number: The number of times to repeat.
-            generator: A generator factory callable.
-        """
-        self.number = number
-        self.generator = generator
-    
-    def _generate(self) -> Generator[T,None,None]:
-        """Yield values from the generator, repeated the specified number of times.
-        
-        Yields:
-            Values from the generator, repeated for the specified number of iterations.
-        """
-        for _ in range(self.number):
-            yield from self.generator()
-
-class RandomRepeater[T](GeneratorFactory[T]):
-    """Repeats a generator with a specified probability.
-    
-    When called, returns a generator that repeatedly yields from the supplied generator factory
-    with the specified probability. On each iteration, a random number determines whether to yield
-    from the generator again or stop. Each repetition uses a fresh generator from the factory.
-    
-    Note: The supplied generator should be finite, otherwise each repetition will not complete.
-    
-    Args:
-        probability: Probability (0-100) of repeating the generator on each iteration.
-        generator: A generator factory callable that produces generators.
-        
-    Example:
-        >>> gen = ConstantFor(1, 1)  # Yield 1 once
-        >>> repeater = RandomRepeater(50, gen)  # 50% chance to repeat
-        >>> list(repeater())  # Result varies: could be [1] or [1, 1] or [1, 1, 1], etc.
-    """
-    def __init__(self, probability: int, generator: Callable[[], Generator[T,None,None]]):
-        """Initialize the RandomRepeater.
-        
-        Args:
-            probability: The probability (0-100) of repeating on each iteration.
-            generator: A generator factory callable.
-        """
-        self.probability = probability
-        self.generator = generator
-    
-    def _generate(self) -> Generator[T,None,None]:
-        """Yield values from the generator, repeating based on random probability.
-        
-        Yields:
-            Values from the generator. After each iteration, continues with supplied probability %.
-        """
-        while random.randint(0,100) < self.probability:
-            yield from self.generator()
+        yield from random.choice(self.factories)()
 
 class Repeater[T](GeneratorFactory[T]):
-    """Infinitely repeats a generator.
+    """ This generator factory repeats in three different ways depending on the supplied arguments.
     
-    When called, returns a generator that yields from the supplied generator factory infinitely,
-    creating a fresh generator each time the current one is exhausted.
+    The first argument is a generator factory. 
+    The second argument defines the repeating behaviour:
+        - None: repeat indefinitely.
+        - number: repeat that many times.
+        - [min, max]: repeat a random number of times between min and max (inclusive).
     
-    Note: The supplied generator should be finite, otherwise the repeater will yield forever from
-    the first generator and never move to subsequent repetitions.
-    
+    When called, returns a generator factory that yields from the supplied generator factory the specified number of times. 
+    Each repetition uses a fresh generator from the factory.
+
+    Note: Each generator produced from the supplied factory should be finite, otherwise the repeater is redundant.
+
     Args:
-        generator: A generator factory callable that produces generators.
-        
-    Example:
-        >>> gen = ConstantFor(1, 2)  # Yield 1 twice
-        >>> repeater = Repeater(gen)
-        >>> gen_iter = repeater()
-        >>> [next(gen_iter) for _ in range(6)]  # Get 6 values
-        [1, 1, 1, 1, 1, 1]
+        factory: A generator factory.
+        repeater_arg: Arguments to determine repetition behavior.
+            - None: repeat indefinitely.
+            - number: repeat that many times.
+            - [min, max]: repeat a random number of times between min and max (inclusive).
+
     """
-    def __init__(self, generator: Callable[[], Generator[T,None,None]]):
+    def __init__(self, factory: Callable[[], Generator[T,None,None]], 
+                 repeater_arg: int | list[int] | None = None):
         """Initialize the Repeater.
         
         Args:
-            generator: A generator factory callable.
+            factory: A generator factory callable.
+            repeater_arg: Arguments to determine repetition behavior.
+                - None: repeat indefinitely.
+                - number: repeat that many times.
+                - [min, max]: repeat a random number of times between min and max (inclusive).
         """
-        self.generator = generator
+        self.factory = factory
+        self.repeater_arg = repeater_arg
     
     def _generate(self) -> Generator[T,None,None]:
-        """Infinitely yield values from the generator.
+        """Yield values from the generator, repeated according to the specified behavior.
         
         Yields:
-            Values from the generator, infinitely repeating when exhausted.
+            Values from the generator, repeated according to the initialization parameters.
+
+        Note that each repitition calls the factory producing a new generator.
         """
-        while True:
-            yield from self.generator()  
+        if self.repeater_arg is None:
+            # Repeat indefinitely
+            while True:
+                yield from self.factory()
+        elif isinstance(self.repeater_arg, int):
+            # Repeat a fixed number of times
+            for _ in range(self.repeater_arg):
+                yield from self.factory()
+        else:
+            # Repeat a random number of times between min and max
+            count = random.randint(self.repeater_arg[0], self.repeater_arg[1])
+            for _ in range(count):
+                yield from self.factory()
 
-class GeneratorFactoryFromFunction[T](GeneratorFactory[T]):
-    """Generator factory derived from a function that has configurable discretization and offset.
-    
-    Yields values according to a function that maps the interval [0, 1] to [0, 1]. The function is discretized into a configurable
-    number of steps and can be repeated multiple times or infinitely.
-    
-    When the function represents a cyclic function (like sine) for one period, then increasing the number of runs
-    will extend the cyclic behavior. The offset parameter allows starting the cycle at different points.    
 
-    The number of steps is automatically adjusted to be a multiple of 4 to ensure
-    proper symmetry when used with cyclic functions such as sine.
+
+class ProbabilityRepeater[T](GeneratorFactory[T]):
+    """Repeats a generator with a specified probability.
+    
+    When called, returns a generator factory that repeatedly yields from the supplied generator factory
+    with the specified probability. On each iteration, a random number determines whether to yield
+    from the generator again or stop. Each repetition uses a fresh generator from the factory.
+    
+    Note: The supplied generator factory should be finite, otherwise each repetition will not complete.
     
     Args:
-        func: A callable that takes a float in [0, 1] and returns a float in [0, 1]. 
-        steps: Either an integer (number of steps per cycle) or a tuple (min_steps, max_steps)
-            for random step counts. Steps are adjusted to be multiples of 4.
-        offset: Offset the starting point of function evaluation. The function is first evaluated on values from [offset, 1]
-            and then from [0, offset].  offset should be in the range [0,1]. Default is 0.0.
-        runs: Number of times to repeat the function evaluations. 0 means infinite repetition. Default is 1.
-        
-    Attributes:
-        func: The supplied function.
-        steps: Adjusted step count(s), guaranteed to be multiples of 4.
-        offset: The supplied offset.
-        runs: Number of repetitions (0 for infinite).
-        is_random: True if step count is randomly selected.
+        probability: Probability (0-100) of repeating the generator on each iteration.
+        factory: A generator factory.
         
     Example:
-        >>> sine_wave = GeneratorFactoryFromFunction(sine_function, 16)
+        >>> fact = Constant(1, 1)  # Yield 1 once
+        >>> repeater = ProbabilityRepeater(50, fact)  # 50% chance to repeat
+        >>> list(repeater())  # Result varies: could be [1] or [1, 1] or [1, 1, 1], etc.
+    """
+    def __init__(self, probability: int, factory: Callable[[], Generator[T,None,None]]):
+        """Initialize the ProbabilityRepeater.
+        
+        Args:
+            probability: The probability (0-100) of repeating on each iteration.
+            factory: A generator factory.
+        """
+        self.probability = probability
+        self.factory = factory
+    
+    def _generate(self) -> Generator[T,None,None]:
+        """Yield values from the generator factory, repeating based on random probability.
+        
+        Yields:
+            Values from the generator factory. After each iteration, continues with supplied probability %.
+            A new generator is created on each iteration
+        """
+        while random.randint(0,100) < self.probability:
+            yield from self.factory()
+
+class SingleConstant[T](GeneratorFactory[T]):
+    """Yields a single constant value.
+    
+    When called, returns a generator that yields the specified value once and then stops.
+    Useful for fixed single-value outputs or as a building block in compositions.
+
+    It is expected that the user will not use this directly as yielding a constant once is not very useful.
+    Instead Constant is SingleConstant wrapped with a Repeater - see below.   
+    
+    Args:
+        value: The constant value to yield once.
+    Example:
+        >>> single_const = SingleConstant(42)
+        >>> list(single_const())
+        [42]
+    """
+    def __init__(self, value: T):
+        """Initialize the SingleConstant.
+        
+        Args:
+            value: The constant value to yield.
+        """
+        self.value = value
+
+    def _generate(self) -> Generator[T, None, None]:
+        """Yield the constant value once.
+        
+        Yields:
+            The constant value a single time.
+        """
+        yield self.value    
+
+def Constant(value: T, *args) -> GeneratorFactory[T]:
+    """A factory function that creates a generator factory yielding a constant value with flexible repetition.
+
+    This function provides a convenient interface for creating generator factories that yield a constant value 
+    with various repetition behaviors. The aditional argument determine how the constant value is repeated and is
+    the same as for the Repeater class"""
+    return Repeater(SingleConstant(value), *args)
+
+
+     
+class BasicWaveGeneratorFactory[T](GeneratorFactory[T]):
+    """Generator factory derived from a function that has configurable discretization and offset.
+    
+    Yields values according to a function that maps the interval [0, 1] to [0, 1]. The function is discretized into a 
+    configurable number of steps and can be repeated multiple times. The function is treated as defining one complete
+    cycle of a periodic function.
+    
+    As with SingleConstant it is expected that the user will more typically use this with a Repeater wrapper - see below.
+
+    Args:
+        func: A callable that takes a float in [0, 1] and returns a float in [0, 1]. 
+        steps: the number of steps for one cycle of the periodic function (default 4) is either:
+            int: the number of steps
+            (low, hi): choose a random number in the range [low, hi]
+        runs:  the number of cycles computed (default 1) is either:
+            int: the number of steps
+            (low, hi): choose a random number in the range [low, hi]
+        offset: an offset for the start of the cycle (default 0.0)
+
+    For symmetry reasons steps/steps range is modified so that the staps become a multiple of 4.
+            
+    Attributes:
+        func: The supplied function.
+        steps_is_int: True iff the steps argument is an int
+        steps: the number of steps for one cycle of the periodic function (0 if not steps_is_int)
+        low_steps_4: if not steps_is_int then this is the first element of steps divided by 4 (0 if steps_is_int)
+        hi_steps_4: if not steps_is_int then this is the second element of steps divided by 4 (0 if steps_is_int)
+        runs_is_int: True iff the steps argument is an int
+        runs:  the number of cycles computed (0 if not runs_is_int)
+        low_runs: if not runs_is_int then this is the first element of runs (0 if runs_is_int)
+        hi_runs: if not runs_is_int then this is the second element of runs (0 if runs_is_int)
+        offset: an offset for the start of the cycle (default 0.0)
+        
+        
+    Example:
+        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16)
         >>> gen = sine_wave()
         >>> values = list(gen)
         >>> len(values)
         16
     """
-    def __init__(self, func: Callable[[float], T], steps: int | tuple[int, int], offset: float = 0.0, runs = 1):
-        """Initialize the GeneratorFactoryFromFunction generator factory.
+    def __init__(self, func: Callable[[float], T], steps: int | tuple[int,int] = 4, 
+                 runs: int | tuple[int,int] = 1, offset: float = 0.0):
+        """Initialize the BasicWaveGeneratorFactory generator factory.
         
         Args:
-            func: A function mapping [0, 1] to [0, 1].
-            steps: Integer number of steps, or tuple (min_steps, max_steps) for randomized counts.
-                All values are adjusted to be multiples of 4 for wave symmetry.
-            offset: Offset for function evaluation. Default is 0.0.
-            runs: Number of complete evaluations to generate. Use 0 for infinite cycles. Default is 1.
+            func: A callable that takes a float in [0, 1] and returns a float in [0, 1]. 
+            steps: the number of steps for one cycle of the periodic function (default 4) is either:
+                int: the number of steps
+                (low, hi): choose a random number in the range [low, hi]
+            runs:  the number of cycles computed (default 1) is either:
+                int: the number of steps
+                (low, hi): choose a random number in the range [low, hi]
+            offset: an offset for the start of the cycle (default 0.0)    
         """
         self.func = func
         if isinstance(steps, int):
-            self.steps = (steps//4)*4  # Ensure multiple of 4 for wave symmetry
-            self.is_random = False
+            self.steps_is_int = True
+            self.steps = 4*(steps // 4)  # make steps a multiple of 4
+            self.low_steps_4 = 0
+            self.hi_steps_4 = 0
         else:
-            # We divide by 4 here to keep the random range consistent after multiplying back in _a_cycle_generator
-            self.steps = (steps[0]//4, steps[1]//4)  
-            self.is_random = True
+            self.steps_is_int = False
+            self.steps = 0
+            self.low_steps_4 = steps[0]//4
+            self.hi_steps_4 = steps[1]//4
 
-        self.is_random = isinstance(steps, tuple)
-        self.offset = offset
-        self.runs = runs
-    
-    def _an_evaluation_generator(self):
-        """Generate an evaluation of the function over [0,1].
-        
-        Yields:
-            Values of type T representing the function evaluated over [0, 1],
-            with discretization determined by the step count.
-        """
-        if self.is_random:
-            num_steps:int = 4*random.randint(self.steps[0], self.steps[1])
+        if isinstance(runs, int):
+            self.runs_is_int = True
+            self.runs = runs
+            self.low_runs = 0
+            self.hi_runs = 0
         else:
-            num_steps:int = self.steps
-        step_slice = 1.0 / num_steps
-        for i in range(num_steps):
-            position = (self.offset + i * step_slice) % 1.0 # float version of modulo for wrap-around
-            yield self.func(position)  
+            self.runs_is_int = False
+            self.runs = 0
+            self.low_runs = runs[0]
+            self.hi_runs = runs[1]
+        self.offset = offset
+        
 
     def _generate(self) -> Generator[T, None, None]:
         """Generate one or more complete cycles of the waveform.
         
         Yields:
-            Float values in [0, 1] from the waveform, repeated for the specified number of runs.
-            If runs is 0, yields infinitely.
+            Float values in [0, 1] from the waveform
             
         """
-        if self.runs == 0:
-            while True:
-                yield from self._an_evaluation_generator()
+        if self.steps_is_int:
+            steps = self.steps
         else:
-            for _ in range(self.runs):
-                yield from self._an_evaluation_generator()
+            steps = 4*random.randint(self.low_steps_4, self.hi_steps_4)
+        if self.runs_is_int:
+            runs = self.runs
+        else:
+            runs = random.randint(self.low_runs, self.hi_runs)
+
+        step_slice = 1.0 / steps
+        for _ in range(runs):
+            for i in range(steps):
+                position = (self.offset + i * step_slice) % 1.0 # float version of modulo for wrap-around
+                yield self.func(position)  
+
+def WaveGeneratorFactory[T](func: Callable[[float], T], *args, **kwargs) -> GeneratorFactory[T]:
+    """A factory function that creates a generator factory yielding values from a wave factory with flexible repetition.
+
+    This function provides a convenient interface for creating generator factories for waves 
+    with various repetition behaviors. This factory is a BasicWaveGeneratorFactory wrapped in a Repeater factory.
+    If repeater_arg is given (defaults to prducing an infinite generator) it needs to be given as a keyword arg.
+    The runs argument only needs to be set to anything other than the default of 1 if steps is chosen randomly as
+    the repart part will take care of repition.
+
+    Example:
+        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16, repeater_arg = 2)
+        >>> gen = sine_wave()
+        >>> values = list(gen)
+        >>> len(values)
+        32
+    """
+
+    # Pop repeater_arg so as not to cause trouble for the call to BasicWaveGeneratorFactory
+    repeater_arg = kwargs.pop('repeater_arg', None) 
+    if repeater_arg == 1:   # no repeating
+        return BasicWaveGeneratorFactory(func, *args, **kwargs)
+    return Repeater(BasicWaveGeneratorFactory(func, *args, **kwargs), repeater_arg)
+
 
 class Tester:
     """Base class for testers used with TakeWhile.
@@ -405,7 +477,7 @@ class TakeWhile[T](GeneratorFactory[T]):
     
     Args:
         tester: A Tester object that determines when to stop yielding.
-        generator: A generator factory callable that produces generators.
+        factory: A generator factory callable that produces generators.
         
     Example:
         >>> tester = CountTester(3)  # Stop after 3 values
@@ -414,15 +486,15 @@ class TakeWhile[T](GeneratorFactory[T]):
         >>> list(take_while())
         [1, 1, 1]
     """
-    def __init__(self, tester: Tester, generator: Callable[[], Generator[T,None,None]]):
+    def __init__(self, tester: Tester, factory: Callable[[], Generator[T,None,None]]):
         """Initialize the TakeWhile.
         
         Args:
             tester: A Tester instance.
-            generator: A generator factory callable.
+            factory: A generator factory.
         """
         self.tester = tester
-        self.generator = generator
+        self.factory = factory
     
     def _generate(self) -> Generator[T,None,None]:
         """Yield values while the test condition is true.
@@ -431,80 +503,13 @@ class TakeWhile[T](GeneratorFactory[T]):
             Values from the generator while the tester's test function returns True.
             After yielding stops, calls tester.on_false().
         """
-        g = self.generator() # Get a fresh generator
+        g = self.factory() # Get a fresh generator
         test = self.tester() # Get a fresh tester function
         while test():
             yield next(g)
         # Tester returned false
         self.tester.on_false()
 
-class Constant[T](GeneratorFactory[T]):
-    """Yields a constant value infinitely.
-    
-    When called, returns a generator that yields the same value forever.
-    Useful as a base for composing with other generators that limit or modify the output.
-    
-    Args:
-        value: The constant value to yield indefinitely.
-        
-    Example:
-        >>> const = Constant(42)
-        >>> gen = const()
-        >>> [next(gen) for _ in range(3)]
-        [42, 42, 42]
-    """
-
-    def __init__(self, value: T):
-        """Initialize the Constant.
-        
-        Args:
-            value: The constant value to yield.
-        """
-        self.value = value
-
-    def _generate(self) -> Generator[T, None, None]:
-        """Infinitely yield the constant value.
-        
-        Yields:
-            The constant value indefinitely.
-        """
-        while True:
-            yield self.value
-
-class ConstantFor[T](GeneratorFactory[T]):
-    """Yields a constant value a specified number of times.
-    
-    When called, returns a generator that yields the same value for a fixed number of iterations,
-    then stops. Useful for fixed-duration operations or as a building block in compositions.
-    
-    Args:
-        value: The constant value to yield.
-        steps: The number of times to yield the value.
-        
-    Example:
-        >>> const = ConstantFor(10, 3)  # Yield 10 three times
-        >>> list(const())
-        [10, 10, 10]
-    """
-
-    def __init__(self, value: T, steps: int):
-        """Initialize the ConstantFor.
-        
-        Args:
-            value: The constant value to yield.
-            steps: The number of times to yield the value.
-        """
-        self.value = value
-        self.steps = steps
-
-    def _generate(self) -> Generator[T, None, None]:
-        """Yield the constant value the specified number of times.
-        
-        Yields:
-            The constant value, repeated for the specified number of steps.
-        """
-        for _ in range(self.steps):
-            yield self.value
 
 class CountTester(Tester):
     """Tester that stops after a specified number of iterations.
@@ -584,7 +589,7 @@ class TimeoutTester(Tester):
             Current time in seconds as a float.
         """
         if 'micropython' in sys.modules:
-            return mp_time.ticks_ms() / 1000.0
+            return time.ticks_ms() / 1000.0
         else:
             return time.time()
     
@@ -657,7 +662,7 @@ if __name__ == "__main__":
     seq_gen = Sequencer([
         TakeWhile(CountTester(3), Constant(1.0)),
         TakeWhile(CountTester(5), RampGen(0.0, 1.0, 5)),
-        ConstantFor(0.01, 1)
+        Constant(0.01, 1)
     ])
     values = []
     for i, val in enumerate(seq_gen()):
@@ -667,18 +672,18 @@ if __name__ == "__main__":
     print(f"Sequencer output: {values}")
     
     print("\n3. Testing repeater:")
-    repeat_gen = RepeaterFor(3, RampGen(0.0, 1.0, 3))
+    repeat_gen = Repeater(RampGen(0.0, 1.0, 3), 3)
     values = []
     for val in repeat_gen():
         values.append(round(val, 2))
     print(f"Repeater output (3 times): {values}")
 
     print("\n4. Testing chooser:")
-    choose_gen = RepeaterFor(10, Chooser([
+    choose_gen = Repeater(Chooser([
         take_while_1,
         take_while_2,
         take_while_3    
-    ]))
+    ]), 10)
 
     values = []
     gen = choose_gen()
@@ -687,8 +692,8 @@ if __name__ == "__main__":
         values.append(val)
     print(f"Chooser output (20 random choices): {values}")
     
-    print("\n5. Testing random_repeater:")
-    random_repeat_gen = RandomRepeater(50, take_while_1)  # 50% probability
+    print("\n5. Testing ProbabilityRepeater:")
+    random_repeat_gen = ProbabilityRepeater(50, take_while_1)  # 50% probability
     values = []
     count = 0
     for val in random_repeat_gen():
@@ -718,12 +723,12 @@ if __name__ == "__main__":
     generators = [
         Sequencer([Constant(1.0)]),
         Chooser([Constant(1.0)]),
-        RepeaterFor(1, Constant(1.0)),
-        RandomRepeater(100, Constant(1.0)),
+        Repeater(Constant(1.0),1),
+        ProbabilityRepeater(100, Constant(1.0)),
         Repeater(Constant(1.0)),
         TakeWhile(AlwaysTrueTester(), Constant(1.0)),
         Constant(1.0),
-        ConstantFor(1.0, 5),
+        Constant(1.0, 5),
         RampGen(0.0, 1.0, 5),
         SineGeneratorFactoryFromFunctionGen()
     ]

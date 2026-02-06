@@ -9,7 +9,9 @@ A **GeneratorFactory** is the central concept in this library. It's a callable c
 When you call a generator factory multiple times, you get independent generator instances:
 
 ```python
-factory = Constant(42)
+from generator_builder import Constant
+
+factory = Constant(42)  # yields 42 indefinitely
 gen1 = factory()
 gen2 = factory()
 
@@ -30,15 +32,15 @@ This design allows you to:
 Many classes are **higher-order** — they take generator factories as parameters and return new factories that combine them:
 
 ```python
-from generator_builder import ConstantFor, RepeaterFor, Sequencer
+from generator_builder import Constant, RepeaterFor, Sequencer
 
 
-const = ConstantFor(1, 2) 
+const = Constant(1, 2) 
 
 
 # Higher-order factory that repeatedly yields from const
 # This is a simple illustration - it could be more simply written as ConstantFor(1, 6)
-repeated = RepeaterFor(3, const)
+repeated = Repeater(const, 3)
 
 
 list(repeated())  # [1, 1, 1, 1, 1, 1]
@@ -51,12 +53,12 @@ list(repeated())  # [1, 1, 1, 1, 1, 1]
 Chain multiple generators:
 
 ```python
-from generator_builder import Sequencer, ConstantFor
+from generator_builder import Sequencer, Constant
 
 seq = Sequencer([
-    ConstantFor(1, 1),
-    ConstantFor(2, 2),
-    ConstantFor(3, 3)
+    Constant(1, 1),
+    Constant(2, 2),
+    Constant(3, 3)
 ])
 
 print(list(seq())) #[1, 2, 2, 3, 3, 3]
@@ -68,11 +70,15 @@ print(list(seq())) #[1, 2, 2, 3, 3, 3]
 Repeat a finite generator:
 
 ```python
-from generator_builder import RepeaterFor, ConstantFor
+from generator_builder import Sequencer, Constant, Repeater
 
-# Yields 5 twice
-factory = RepeaterFor(2, ConstantFor(5, 1))
-list(factory())  # [5, 5]
+seq = Repeater(Sequencer([
+    Constant(1, 1),
+    Constant(2, 2),
+    Constant(3, 3)
+    ]), 2)
+
+print(list(seq())) # [1, 2, 2, 3, 3, 3, 1, 2, 2, 3, 3, 3]
 ```
 
 ### Conditional Execution
@@ -93,12 +99,12 @@ list(factory()) # [1,1,1]
 Randomly choose from multiple generators:
 
 ```python
-from generator_builder import Chooser, ConstantFor
+from generator_builder import Chooser, Constant
 
 factory = Chooser([
-    ConstantFor(1,1),
-    ConstantFor(2,2),
-    ConstantFor(3,3)
+    Constant(1,1),
+    Constant(2,2),
+    Constant(3,3)
 ])
 
 # Result is one of the three, chosen randomly
@@ -155,8 +161,8 @@ Float generators produce smooth varying values useful for PWM control:
 ```python
 from waveforms import sine_wave_factory
 
-# Create a sine wave
-sine = sine_wave_factory(100)  # 100 steps per cycle
+# Create a sine wave 
+sine = sine_wave_factory(100, repeater_arg=1)  # 100 steps per cycle, one cycle
 
 # Values oscillate between 0 and 1
 for value in sine():

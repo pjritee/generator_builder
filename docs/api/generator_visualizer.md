@@ -14,7 +14,7 @@ The Generator Visualizer provides a graphical user interface for testing and vis
 - **Configurable Max Points**: Adjust the maximum number of points before generator terminates (10-1000)
 - **Configurable Every Nth point**: Plot only every Nth point (1-100). Along with Max Points this determines how far through the generator the visualizer gets.
 - **Statistics Display**: View point count, minimum, maximum, and average values
-- **File Loading**: Load Python scripts with a `get_generator()` method
+- **File Loading**: Load and reload Python scripts with a `get_generator()` method
 
 ## Running the Visualizer
 
@@ -58,44 +58,6 @@ Click **Save Script** to save the current script.
 - **Clear Graph**: Clear the canvas and reset statistics
 - **Max Points**: Spinbox to set the point limit (10-1000, default 500)
 
-## Example Generators
-
-### Sine Wave
-
-```python
-from generator_builder import GeneratorFactoryFromFunction
-import math
-
-def sine_function(x):
-    return (math.sin(2 * math.pi * x) + 1) / 2
-
-def get_generator():
-    gen_factory = GeneratorFactoryFromFunction(sine_function, steps=200, runs=2)
-    return gen_factory()
-```
-
-### Sequence of Constants
-
-```python
-from generator_builder import Sequencer, ConstantFor
-
-def get_generator():
-    seq = Sequencer([
-        ConstantFor(0.2, 50),
-        ConstantFor(0.5, 50),
-        ConstantFor(0.8, 50),
-    ])
-    return seq()
-```
-
-### Random Repeater
-
-```python
-from generator_builder import RandomRepeater, ConstantFor
-
-def get_generator():
-    return RandomRepeater(50, ConstantFor(0.7, 20))()
-```
 
 ## Requirements
 
@@ -122,6 +84,7 @@ Main application class managing the UI and generator execution.
 - `_stop_generator()`: Terminate running generator
 - `_clear_graph()`: Clear visualization and statistics
 - `_load_script()`: Load Python script from file
+- `_reload_script()`: Reload Python script from the current file
 - `_redraw_canvas()`: Update visualization with current data
 - `_update_max_points()`: Update max_points from spinbox
 

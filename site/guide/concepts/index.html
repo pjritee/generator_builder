@@ -135,7 +135,9 @@
 <p>A <strong>GeneratorFactory</strong> is the central concept in this library. It's a callable class that produces fresh generators each time it's called.</p>
 <h3 id="why-use-factories">Why Use Factories?<a class="headerlink" href="#why-use-factories" title="Permanent link">&para;</a></h3>
 <p>When you call a generator factory multiple times, you get independent generator instances:</p>
-<div class="highlight"><pre><span></span><code><span class="n">factory</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span>
+
+<span class="n">factory</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  <span class="c1"># yields 42 indefinitely</span>
 <span class="n">gen1</span> <span class="o">=</span> <span class="n">factory</span><span class="p">()</span>
 <span class="n">gen2</span> <span class="o">=</span> <span class="n">factory</span><span class="p">()</span>
 
@@ -152,15 +154,15 @@
 </ul>
 <h2 id="higher-order-factories">Higher-Order Factories<a class="headerlink" href="#higher-order-factories" title="Permanent link">&para;</a></h2>
 <p>Many classes are <strong>higher-order</strong> — they take generator factories as parameters and return new factories that combine them:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">ConstantFor</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">Sequencer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">Sequencer</span>
 
 
-<span class="n">const</span> <span class="o">=</span> <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> 
+<span class="n">const</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> 
 
 
 <span class="c1"># Higher-order factory that repeatedly yields from const</span>
 <span class="c1"># This is a simple illustration - it could be more simply written as ConstantFor(1, 6)</span>
-<span class="n">repeated</span> <span class="o">=</span> <span class="n">RepeaterFor</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">const</span><span class="p">)</span>
+<span class="n">repeated</span> <span class="o">=</span> <span class="n">Repeater</span><span class="p">(</span><span class="n">const</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
 
 <span class="nb">list</span><span class="p">(</span><span class="n">repeated</span><span class="p">())</span>  <span class="c1"># [1, 1, 1, 1, 1, 1]</span>
@@ -168,23 +170,27 @@
 <h2 id="common-patterns">Common Patterns<a class="headerlink" href="#common-patterns" title="Permanent link">&para;</a></h2>
 <h3 id="sequential-composition">Sequential Composition<a class="headerlink" href="#sequential-composition" title="Permanent link">&para;</a></h3>
 <p>Chain multiple generators:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Sequencer</span><span class="p">,</span> <span class="n">ConstantFor</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Sequencer</span><span class="p">,</span> <span class="n">Constant</span>
 
 <span class="n">seq</span> <span class="o">=</span> <span class="n">Sequencer</span><span class="p">([</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="p">])</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">seq</span><span class="p">()))</span> <span class="c1">#[1, 2, 2, 3, 3, 3]</span>
 </code></pre></div>
 <h3 id="repetition">Repetition<a class="headerlink" href="#repetition" title="Permanent link">&para;</a></h3>
 <p>Repeat a finite generator:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">ConstantFor</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Sequencer</span><span class="p">,</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">Repeater</span>
 
-<span class="c1"># Yields 5 twice</span>
-<span class="n">factory</span> <span class="o">=</span> <span class="n">RepeaterFor</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="nb">list</span><span class="p">(</span><span class="n">factory</span><span class="p">())</span>  <span class="c1"># [5, 5]</span>
+<span class="n">seq</span> <span class="o">=</span> <span class="n">Repeater</span><span class="p">(</span><span class="n">Sequencer</span><span class="p">([</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">seq</span><span class="p">()))</span> <span class="c1"># [1, 2, 2, 3, 3, 3, 1, 2, 2, 3, 3, 3]</span>
 </code></pre></div>
 <h3 id="conditional-execution">Conditional Execution<a class="headerlink" href="#conditional-execution" title="Permanent link">&para;</a></h3>
 <p>Use testers to control generator lifetime:</p>
@@ -197,12 +203,12 @@
 </code></pre></div>
 <h3 id="random-selection">Random Selection<a class="headerlink" href="#random-selection" title="Permanent link">&para;</a></h3>
 <p>Randomly choose from multiple generators:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Chooser</span><span class="p">,</span> <span class="n">ConstantFor</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Chooser</span><span class="p">,</span> <span class="n">Constant</span>
 
 <span class="n">factory</span> <span class="o">=</span> <span class="n">Chooser</span><span class="p">([</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
-    <span class="n">ConstantFor</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">Constant</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
 <span class="p">])</span>
 
 <span class="c1"># Result is one of the three, chosen randomly</span>
@@ -247,8 +253,8 @@
 <p>Float generators produce smooth varying values useful for PWM control:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveforms</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 
-<span class="c1"># Create a sine wave</span>
-<span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># 100 steps per cycle</span>
+<span class="c1"># Create a sine wave </span>
+<span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">repeater_arg</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 100 steps per cycle, one cycle</span>
 
 <span class="c1"># Values oscillate between 0 and 1</span>
 <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sine</span><span class="p">():</span>

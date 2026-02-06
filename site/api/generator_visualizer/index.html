@@ -76,16 +76,6 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#example-generators">Example Generators</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#sine-wave">Sine Wave</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#sequence-of-constants">Sequence of Constants</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#random-repeater">Random Repeater</a>
-    </li>
-        </ul>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#class-reference">Class Reference</a>
@@ -146,7 +136,7 @@
 <li><strong>Configurable Max Points</strong>: Adjust the maximum number of points before generator terminates (10-1000)</li>
 <li><strong>Configurable Every Nth point</strong>: Plot only every Nth point (1-100). Along with Max Points this determines how far through the generator the visualizer gets.</li>
 <li><strong>Statistics Display</strong>: View point count, minimum, maximum, and average values</li>
-<li><strong>File Loading</strong>: Load Python scripts with a <code>get_generator()</code> method</li>
+<li><strong>File Loading</strong>: Load and reload Python scripts with a <code>get_generator()</code> method</li>
 </ul>
 <h2 id="running-the-visualizer">Running the Visualizer<a class="headerlink" href="#running-the-visualizer" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>generator_visualizer.py
@@ -180,35 +170,6 @@
 <li><strong>Clear Graph</strong>: Clear the canvas and reset statistics</li>
 <li><strong>Max Points</strong>: Spinbox to set the point limit (10-1000, default 500)</li>
 </ul>
-<h2 id="example-generators">Example Generators<a class="headerlink" href="#example-generators" title="Permanent link">&para;</a></h2>
-<h3 id="sine-wave">Sine Wave<a class="headerlink" href="#sine-wave" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">GeneratorFactoryFromFunction</span>
-<span class="kn">import</span> <span class="nn">math</span>
-
-<span class="k">def</span> <span class="nf">sine_function</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-
-<span class="k">def</span> <span class="nf">get_generator</span><span class="p">():</span>
-    <span class="n">gen_factory</span> <span class="o">=</span> <span class="n">GeneratorFactoryFromFunction</span><span class="p">(</span><span class="n">sine_function</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">gen_factory</span><span class="p">()</span>
-</code></pre></div>
-<h3 id="sequence-of-constants">Sequence of Constants<a class="headerlink" href="#sequence-of-constants" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Sequencer</span><span class="p">,</span> <span class="n">ConstantFor</span>
-
-<span class="k">def</span> <span class="nf">get_generator</span><span class="p">():</span>
-    <span class="n">seq</span> <span class="o">=</span> <span class="n">Sequencer</span><span class="p">([</span>
-        <span class="n">ConstantFor</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
-        <span class="n">ConstantFor</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
-        <span class="n">ConstantFor</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
-    <span class="p">])</span>
-    <span class="k">return</span> <span class="n">seq</span><span class="p">()</span>
-</code></pre></div>
-<h3 id="random-repeater">Random Repeater<a class="headerlink" href="#random-repeater" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">RandomRepeater</span><span class="p">,</span> <span class="n">ConstantFor</span>
-
-<span class="k">def</span> <span class="nf">get_generator</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">RandomRepeater</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="n">ConstantFor</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">20</span><span class="p">))()</span>
-</code></pre></div>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python 3.6+</li>
@@ -231,6 +192,7 @@
 <li><code>_stop_generator()</code>: Terminate running generator</li>
 <li><code>_clear_graph()</code>: Clear visualization and statistics</li>
 <li><code>_load_script()</code>: Load Python script from file</li>
+<li><code>_reload_script()</code>: Reload Python script from the current file</li>
 <li><code>_redraw_canvas()</code>: Update visualization with current data</li>
 <li><code>_update_max_points()</code>: Update max_points from spinbox</li>
 </ul>

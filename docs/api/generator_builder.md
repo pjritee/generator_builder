@@ -9,13 +9,14 @@ See the source code [generator_builder.py](https://github.com/pjritee/generator_
 - `GeneratorFactory[T]` - Base class for all generator factories
 - `Sequencer[T]` - Chains multiple generators sequentially
 - `Chooser[T]` - Randomly selects one generator
-- `RepeaterFor[T]` - Repeats a generator a fixed number of times
-- `RandomRepeater[T]` - Repeats a generator with specified probability
-- `Repeater[T]` - Infinitely repeats a generator
-- `GeneratorFactoryFromFunction[T]` - Generator factory derived from a function with configurable discretization and offset
+- `Repeater[T]` - Repeats a generator for a specified number of times (the default is indefinitely)
+- `ProbabilityRepeater[T]` - Repeats a generator with specified probability
+- `SingleConstant[T]` - Yields a constant value once. Probably not useful directly (used inside the definition of `Constant`)
+- `Constant[T]` - Yields a constant a number of times specified by the `repeater_arg` value (default is indefinitely)
+- `BasicWaveGeneratorFactory[T]` - Basic generator factory derived from a function with configurable discretization and offset
+- `WaveGeneratorFactory[T]` - A `BasicWaveGeneratorFactory[T]` wrapped in a `Repeater[T]` - similar to the way `Constant` is implemented.
 - `TakeWhile[T]` - Yields values while a test condition is true
-- `Constant[T]` - Yields a constant value infinitely
-- `ConstantFor[T]` - Yields a constant value a specified number of times
+
 
 ## Tester Classes
 

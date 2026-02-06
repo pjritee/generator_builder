@@ -31,7 +31,7 @@ from machine import Pin, PWM
 import time
 import random
 import math
-import waveform_mp as fg
+import waveforms_mp as wf
 import generator_builder_mp as gb
 
 MAX_DUTY = 65535
@@ -124,19 +124,19 @@ else:
 #       - A sine wave of length between 100 and 300 steps with a 70% chance of repeating
 #       - An 'on' generator for 50 steps with a 25% chance of repeating
 generator_factory = gb.Sequencer([
-    gb.ConstantFor(0.0, random.randint(20,100)),
+    gb.Constant(0.0, (20,100)),
     gb.Repeater(gb.Sequencer([
         # A random square wave whose length is between 50 and 100 steps, with a 20% chance of repeating
-        gb.RandomRepeater(20, fg.square_wave_factory((50, 100))),
+        gb.ProbabilityRepeater(20, wf.square_wave_factory((50, 100))),
         # A sine wave  whose length is between 100 and 300 steps, with a 70% chance of repeating
-        gb.RandomRepeater(70, fg.sine_wave_factory((100, 300))),
+        gb.ProbabilityRepeater(70, wf.sine_wave_factory((100, 300))),
         # An on generator for 50 steps with a 25% chance of repeating
-        gb.RandomRepeater(25, gb.ConstantFor(1.0, 50))
+        gb.ProbabilityRepeater(25, gb.Constant(1.0, 50))
         ]))
     ])
 
 # A factory that creates a sine wave generator of length 200 steps
-sine_wave_factory_200 = fg.sine_wave_factory(200)
+sine_wave_factory_200 = wf.sine_wave_factory(200)
 
 # For the following generator we want to have the red LEDs follow a sine wave for a specified time with the other LEDs off.
 # Then we want the blue LEDs to follow the sine wave with the other LEDs off, and then the yellow LEDs to follow the sine wave with the other LEDs off.
@@ -166,7 +166,7 @@ class ColourTester(gb.Tester):
         self.colour_state = colour_state
         self.colour = colour
 
-    def __call__(self) -> Callable[[], bool]:
+    def __call__(self):
         def test_fun() -> bool:
             return self.colour_state.active_colour != self.colour
         return test_fun
@@ -201,8 +201,8 @@ def make_colour_testers() -> list[ColourTester]:
 colour_testers = make_colour_testers()
 timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
 zero_factory = gb.Repeater(gb.Constant(0.0))
-repeating_sine_factory = fg.sine_wave_factory(200, runs=0)
-repeating_sine_factory_offset = fg.sine_wave_factory(400, offset=0.75, runs=0)
+repeating_sine_factory = wf.sine_wave_factory(200)
+repeating_sine_factory_offset = wf.sine_wave_factory(400, offset=0.75)
 # Now we can define the generator factories for this behaviour
 def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
     """Returns a generator factory that creates a generator that produces a sine wave
@@ -224,7 +224,7 @@ led_controls = [
     [(led, generator_factory()) for led in leds],
 
      # Second control set: each LED gets a sequence generator consisting of an increasing delay followed by a sine wave generator
-    [(led, gb.Sequencer([gb.ConstantFor(0.0, i*20), repeating_sine_factory])()) for i, led in enumerate(leds)],
+    [(led, gb.Sequencer([gb.Constant(0.0, i*20), repeating_sine_factory])()) for i, led in enumerate(leds)],
 
     # Third control set: red, blue, yellow LEDs take turns to follow a sine wave while the other LEDs are off
     [(led, rgb_generator_factory(0)()) for led in red_leds] +

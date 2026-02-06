@@ -62,7 +62,7 @@ class GeneratorVisualizer:
         
         ttk.Label(editor_top, text="Python Code:").pack(side=tk.LEFT, padx=5)
         ttk.Button(editor_top, text="Load Script", command=self._load_script).pack(side=tk.LEFT, padx=2)
-        ttk.Button(editor_top, text="Reload Script", command=self._reload_load_script).pack(side=tk.LEFT, padx=2)
+        ttk.Button(editor_top, text="Reload Script", command=self._reload_script).pack(side=tk.LEFT, padx=2)
         ttk.Button(editor_top, text="Save File", command=self._save_script).pack(side=tk.LEFT, padx=2)
         ttk.Button(editor_top, text="Clear", command=self._clear_editor).pack(side=tk.LEFT, padx=2)
         # File status label
@@ -139,28 +139,17 @@ class GeneratorVisualizer:
     
     def _insert_example_code(self) -> None:
         """Insert example code into the editor."""
-        example = """# Example 1: Simple sine wave
-from generator_builder import GeneratorFactoryFromFunction
-import math
+        example = """# Example
 
-def sine_function(x):
-    return (math.sin(2 * math.pi * x) + 1) / 2
+# The "inner" sine factory picks a random step in [100,400] and runs that twice (2 cycles)
+# The wrapping Repeater then repeats that a random number of times in [50,100]
+# Try setting Max Points to 4000 and Every Nth to 20 and press Run several times.
+
+from waveforms import sine_wave_factory
 
 def get_generator():
-    gen_factory = GeneratorFactoryFromFunction(sine_function, steps=200, runs=2)
+    gen_factory = sine_wave_factory(steps = (100,400), runs=2, repeater_arg=(50,100))
     return gen_factory()
-
-
-# Example 2: Sequence of constants
-# from generator_builder import Sequencer, ConstantFor
-# 
-# def get_generator():
-#     seq = Sequencer([
-#         ConstantFor(0.2, 50),
-#         ConstantFor(0.5, 50),
-#         ConstantFor(0.8, 50),
-#     ])
-#     return seq()
 """
         self.code_editor.insert("1.0", example)
     
@@ -182,7 +171,7 @@ def get_generator():
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load script: {e}")
     
-    def _reload_load_script(self) -> None:
+    def _reload_script(self) -> None:
         """Reload the currently loaded script."""
         if self.filepath:
             try:

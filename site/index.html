@@ -108,7 +108,8 @@
                 <h1 id="generator-builder">Generator Builder<a class="headerlink" href="#generator-builder" title="Permanent link">&para;</a></h1>
 <p>A small collection of generator-builder utilities and helpers for creating reusable Python generator components (for example, to drive PWM LEDs). This project evolved from the PWM example in the <code>RPi-Pico</code> repository.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p><strong>What:</strong> A set of tiny classes that build generator factories (sequencers, repeaters, choosers, take-while helpers) that produce generators when called and a collection of float-valued generator factories such as sine, sawtooth, square, constant.</p>
+<p><strong>What:</strong> A set of tiny classes that build generator factories (sequencers, repeaters, choosers, take-while helpers) that produce generators when called and a collection of float-valued
+  generator factories based on cyclic functions.</p>
 <p><strong>Why:</strong> Make it easy to compose and reuse generator behavior across applications, with a MicroPython-friendly option by stripping type hints. By designing the <code>Tester</code> class, it is possible to write testers that communicate with other testers using a shared object. This could be used to program oscillations between the behaviors of collections of PWM-controlled LEDs.</p>
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <ul>
@@ -153,6 +154,10 @@
 <tr>
 <td><code>waveforms_mp.py</code></td>
 <td>MicroPython-compatible float generators</td>
+</tr>
+<tr>
+<td><code>generator_visualizer.py</code></td>
+<td>Visualizer for generator builders</td>
 </tr>
 <tr>
 <td><code>strip_type_hints.py</code></td>
@@ -215,5 +220,5 @@
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2026-02-03 22:10:13.678715+00:00
+Build Date UTC : 2026-02-06 00:06:17.215896+00:00
 -->

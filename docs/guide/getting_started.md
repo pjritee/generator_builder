@@ -10,6 +10,7 @@ Generator Builder is a pure Python module. To use it in your project:
 # Copy the files to your project
 cp generator_builder.py your_project/
 cp waveforms.py your_project/
+cp generator_visualizer.py your_project/
 ```
 
 ### MicroPython
@@ -51,8 +52,8 @@ A **GeneratorFactory** is a callable object that creates fresh generators:
 ```python
 from generator_builder import ConstantFor
 
-# Create a factory
-factory = ConstantFor(42, 2)
+# Create a factory - repeat 42 twice
+factory = Constant(42, 2)
 
 # Each call produces a fresh generator
 gen1 = factory()
@@ -71,8 +72,8 @@ Combine multiple factories to create complex behaviors:
 from generator_builder import ConstantFor, RepeaterFor, Sequencer
 
 # Create individual factories
-gen1 = ConstantFor(1, 3)
-gen2 = ConstantFor(2, 2)
+gen1 = Constant(1, 3)
+gen2 = Constant(2, 2)
 
 # Combine them
 seq = Sequencer([gen1, gen2])

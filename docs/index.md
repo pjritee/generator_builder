@@ -4,7 +4,8 @@ A small collection of generator-builder utilities and helpers for creating reusa
 
 ## Overview
 
-**What:** A set of tiny classes that build generator factories (sequencers, repeaters, choosers, take-while helpers) that produce generators when called and a collection of float-valued generator factories such as sine, sawtooth, square, constant.
+**What:** A set of tiny classes that build generator factories (sequencers, repeaters, choosers, take-while helpers) that produce generators when called and a collection of float-valued
+  generator factories based on cyclic functions.
 
 **Why:** Make it easy to compose and reuse generator behavior across applications, with a MicroPython-friendly option by stripping type hints. By designing the `Tester` class, it is possible to write testers that communicate with other testers using a shared object. This could be used to program oscillations between the behaviors of collections of PWM-controlled LEDs.
 
@@ -38,6 +39,7 @@ for value in sine():
 | `waveforms.py` | Float-producing generator factories |
 | `generator_builder_mp.py` | MicroPython-compatible version |
 | `waveforms_mp.py` | MicroPython-compatible float generators |
+| `generator_visualizer.py` | Visualizer for generator builders |
 | `strip_type_hints.py` | Utility to remove type hints |
 | `pwm_leds/` | PWM LED control examples |
 
