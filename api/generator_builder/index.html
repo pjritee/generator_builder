@@ -108,13 +108,13 @@
 <li><code>GeneratorFactory[T]</code> - Base class for all generator factories</li>
 <li><code>Sequencer[T]</code> - Chains multiple generators sequentially</li>
 <li><code>Chooser[T]</code> - Randomly selects one generator</li>
-<li><code>RepeaterFor[T]</code> - Repeats a generator a fixed number of times</li>
-<li><code>RandomRepeater[T]</code> - Repeats a generator with specified probability</li>
-<li><code>Repeater[T]</code> - Infinitely repeats a generator</li>
-<li><code>GeneratorFactoryFromFunction[T]</code> - Generator factory derived from a function with configurable discretization and offset</li>
+<li><code>Repeater[T]</code> - Repeats a generator for a specified number of times (the default is indefinitely)</li>
+<li><code>ProbabilityRepeater[T]</code> - Repeats a generator with specified probability</li>
+<li><code>SingleConstant[T]</code> - Yields a constant value once. Probably not useful directly (used inside the definition of <code>Constant</code>)</li>
+<li><code>Constant[T]</code> - Yields a constant a number of times specified by the <code>repeater_arg</code> value (default is indefinitely)</li>
+<li><code>BasicWaveGeneratorFactory[T]</code> - Basic generator factory derived from a function with configurable discretization and offset</li>
+<li><code>WaveGeneratorFactory[T]</code> - A <code>BasicWaveGeneratorFactory[T]</code> wrapped in a <code>Repeater[T]</code> - similar to the way <code>Constant</code> is implemented.</li>
 <li><code>TakeWhile[T]</code> - Yields values while a test condition is true</li>
-<li><code>Constant[T]</code> - Yields a constant value infinitely</li>
-<li><code>ConstantFor[T]</code> - Yields a constant value a specified number of times</li>
 </ul>
 <h2 id="tester-classes">Tester Classes<a class="headerlink" href="#tester-classes" title="Permanent link">&para;</a></h2>
 <ul>

@@ -58,7 +58,7 @@
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">Waveforms</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#generatorfactoryfromfunction-functions">GeneratorFactoryFromFunction Functions</a>
+    <li class="toctree-l2"><a class="reference internal" href="#functions-defining-one-cycle-of-a-periodic-function">Functions defining one cycle of a periodic function</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#factory-functions">Factory Functions</a>
         <ul>
@@ -107,25 +107,27 @@
                 <h1 id="waveforms-api">Waveforms API<a class="headerlink" href="#waveforms-api" title="Permanent link">&para;</a></h1>
 <p>Complete API reference for the waveforms module.</p>
 <p>See <a href="https://github.com/pjritee/generator_builder/blob/main/waveforms.py">waveform.py</a> for the source code and comprehensive docstrings.</p>
-<h2 id="generatorfactoryfromfunction-functions">GeneratorFactoryFromFunction Functions<a class="headerlink" href="#generatorfactoryfromfunction-functions" title="Permanent link">&para;</a></h2>
-<p>These functions map [0, 1] to [0, 1] and are used by the GeneratorFactoryFromFunction class:</p>
+<h2 id="functions-defining-one-cycle-of-a-periodic-function">Functions defining one cycle of a periodic function<a class="headerlink" href="#functions-defining-one-cycle-of-a-periodic-function" title="Permanent link">&para;</a></h2>
+<p>These functions map [0, 1] to [0, 1] and are used by the  class:</p>
 <ul>
 <li><code>sine_function(x)</code> - Sine wave function</li>
 <li><code>square_wave_function(x)</code> - Square wave function</li>
 <li><code>sawtooth_wave_function(x)</code> - Sawtooth wave function</li>
 </ul>
 <h2 id="factory-functions">Factory Functions<a class="headerlink" href="#factory-functions" title="Permanent link">&para;</a></h2>
-<p>Convenience functions to create GeneratorFactoryFunction generators with specific waveforms:</p>
+<p>Convenience functions to create WaveGeneratorFactory generators with specific waveforms:</p>
 <ul>
-<li><code>sine_wave_factory(steps, offset=0.0, runs=1)</code> - Create a sine wave generator</li>
-<li><code>square_wave_factory(steps, offset=0.0, runs=1)</code> - Create a square wave generator</li>
-<li><code>sawtooth_wave_factory(steps, offset=0.0, runs=1)</code> - Create a sawtooth wave generator</li>
+<li><code>sine_wave_factory</code> - Create a sine wave generator</li>
+<li><code>square_wave_factory</code> - Create a square wave generator</li>
+<li><code>sawtooth_wave_factory</code> - Create a sawtooth wave generator</li>
 </ul>
 <h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p>The <code>steps</code> parameter is first and is typically always given. All others should be given as keyword arguments.</p>
 <ul>
-<li><code>steps</code>: Integer number of steps per cycle, or tuple <code>(min_steps, max_steps)</code> for randomized counts</li>
+<li><code>steps</code>: Integer number of steps per cycle, or tuple <code>(min_steps, max_steps)</code> for randomized steps  (default: 4)</li>
 <li><code>offset</code>: Phase offset in [0, 1], determining where in the cycle to start (default: 0.0)</li>
-<li><code>runs</code>: Number of complete cycles. Use 0 for infinite cycles (default: 1)</li>
+<li><code>runs</code>: Integer number of complete cycles, or  tuple <code>(min_steps, max_steps)</code> for randomized runs (default: 1)</li>
+<li><code>repeater_arg</code>: Specifies the repeating behaviour - the argument to <code>Repeater</code>.</li>
 </ul>
 <p>All classes and functions include comprehensive docstrings accessible via Python's <code>help()</code> function:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">waveforms</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
