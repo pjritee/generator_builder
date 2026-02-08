@@ -33,6 +33,7 @@ import random
 import math
 import waveforms_mp as wf
 import generator_builder_mp as gb
+import gc
 
 MAX_DUTY = 65535
 # Setup PWM for 16 LEDs on specified pins
@@ -178,17 +179,13 @@ class ColourTimerTester(gb.TimeoutTester):
         super().__init__(limit_seconds)
         self.colour_state = colour_state
         self.colour = colour
-        self.number_responded = 0
 
     def on_false(self):
         # Change the active colour to the next one
         # Note that will be called "at the same time" by all instances of this tester when their timeouts occur and
         # they will all set the same next colour.
-        self.number_responded += 1
-        if self.number_responded >= number_of_colours[self.colour]:
-            self.number_responded = 0
-            next_colour = (self.colour + 1) % 3
-            self.colour_state.set_colour(next_colour)
+        next_colour = (self.colour + 1) % 3
+        self.colour_state.set_colour(next_colour)
 
 def make_timer_testers(limit_seconds: float) -> list[ColourTimerTester]:
     """Create a list of ColourTimerTesters for each colour with the specified limit_seconds."""
@@ -248,7 +245,7 @@ def handle_press(arg):
 up_button = Pin(16, Pin.IN, Pin.PULL_UP)
 up_button.irq(trigger=Pin.IRQ_FALLING, handler=handle_press)
 
-# Processing all the LEDs in a loop takes around 2ms and so setting this to 
+# Processing all the LEDs in a loop takes around 7ms and so setting this to 
 # anything about that will give consistent timing.
 STEP_TIME = 10  # milliseconds per step
 
@@ -257,6 +254,9 @@ index = 0
 num_controls = len(led_controls)
 while True:
     start = time.ticks_ms()
+    # calling the garbage collector on each loop stops the garbage collector kicking in
+    # at some random time and taking around 6-8ms rather than 1-2ms when done once each loop
+    gc.collect()  
     if up_pressed:
         up_pressed = False
         index = (index + 1) % num_controls
@@ -265,6 +265,5 @@ while True:
     
     for led, gen in led_controls[index]:
         led.duty_u16(float2u16(next(gen)))
-    
     # Wait until the next step time
     time.sleep_ms( STEP_TIME + start - time.ticks_ms())
