@@ -162,7 +162,7 @@ Float generators produce smooth varying values useful for PWM control:
 from waveforms import sine_wave_factory
 
 # Create a sine wave 
-sine = sine_wave_factory(100, repeater_arg=1)  # 100 steps per cycle, one cycle
+sine = sine_wave_factory(100, repeats=1)  # 100 steps per cycle, one cycle
 
 # Values oscillate between 0 and 1
 for value in sine():

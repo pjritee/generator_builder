@@ -27,7 +27,7 @@ The `steps` parameter is first and is typically always given. All others should 
 - `steps`: Integer number of steps per cycle, or tuple `(min_steps, max_steps)` for randomized steps  (default: 4)
 - `offset`: Phase offset in [0, 1], determining where in the cycle to start (default: 0.0)
 - `runs`: Integer number of complete cycles, or  tuple `(min_steps, max_steps)` for randomized runs (default: 1)
-- `repeater_arg`: Specifies the repeating behaviour - the argument to `Repeater`.
+- `repeats`: Specifies the repeating behaviour - the argument to `Repeater`.
 
 All classes and functions include comprehensive docstrings accessible via Python's `help()` function:
 

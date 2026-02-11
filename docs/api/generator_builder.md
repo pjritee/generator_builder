@@ -12,9 +12,10 @@ See the source code [generator_builder.py](https://github.com/pjritee/generator_
 - `Repeater[T]` - Repeats a generator for a specified number of times (the default is indefinitely)
 - `ProbabilityRepeater[T]` - Repeats a generator with specified probability
 - `SingleConstant[T]` - Yields a constant value once. Probably not useful directly (used inside the definition of `Constant`)
-- `Constant[T]` - Yields a constant a number of times specified by the `repeater_arg` value (default is indefinitely)
+- `Constant[T]` - Yields a constant a number of times specified by the `repeats` value (default is indefinitely)
 - `BasicWaveGeneratorFactory[T]` - Basic generator factory derived from a function with configurable discretization and offset
 - `WaveGeneratorFactory[T]` - A `BasicWaveGeneratorFactory[T]` wrapped in a `Repeater[T]` - similar to the way `Constant` is implemented.
+- `TabledFunction[T]` - Instead of repeatedly looking up function values (for example in the use of wave generators) objects from this class precomputes function values and puts them in a table and computing function values is replaced by table lookup.
 - `TakeWhile[T]` - Yields values while a test condition is true
 
 

@@ -181,25 +181,25 @@ class Repeater(GeneratorFactory):
 
     Args:
         factory: A generator factory.
-        repeater_arg: Arguments to determine repetition behavior.
+        repeats: Arguments to determine repetition behavior.
             - None: repeat indefinitely.
             - number: repeat that many times.
             - [min, max]: repeat a random number of times between min and max (inclusive).
 
     """
 
-    def __init__(self, factory, repeater_arg=None):
+    def __init__(self, factory, repeats=None):
         """Initialize the Repeater.
         
         Args:
             factory: A generator factory callable.
-            repeater_arg: Arguments to determine repetition behavior.
+            repeats: Arguments to determine repetition behavior.
                 - None: repeat indefinitely.
                 - number: repeat that many times.
                 - [min, max]: repeat a random number of times between min and max (inclusive).
         """
         self.factory = factory
-        self.repeater_arg = repeater_arg
+        self.repeats = repeats
 
     def _generate(self):
         """Yield values from the generator, repeated according to the specified behavior.
@@ -209,14 +209,14 @@ class Repeater(GeneratorFactory):
 
         Note that each repitition calls the factory producing a new generator.
         """
-        if self.repeater_arg is None:
+        if self.repeats is None:
             while True:
                 yield from self.factory()
-        elif isinstance(self.repeater_arg, int):
-            for _ in range(self.repeater_arg):
+        elif isinstance(self.repeats, int):
+            for _ in range(self.repeats):
                 yield from self.factory()
         else:
-            count = random.randint(self.repeater_arg[0], self.repeater_arg[1])
+            count = random.randint(self.repeats[0], self.repeats[1])
             for _ in range(count):
                 yield from self.factory()
 
@@ -409,22 +409,53 @@ def WaveGeneratorFactory(func, *args, **kwargs):
 
     This function provides a convenient interface for creating generator factories for waves 
     with various repetition behaviors. This factory is a BasicWaveGeneratorFactory wrapped in a Repeater factory.
-    If repeater_arg is given (defaults to prducing an infinite generator) it needs to be given as a keyword arg.
+    If repeats is given (defaults to prducing an infinite generator) it needs to be given as a keyword arg.
     The runs argument only needs to be set to anything other than the default of 1 if steps is chosen randomly as
     the repart part will take care of repition.
 
     Example:
-        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16, repeater_arg = 2)
+        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16, repeats = 2)
         >>> gen = sine_wave()
         >>> values = list(gen)
         >>> len(values)
         32
     """
-    repeater_arg = kwargs.pop('repeater_arg', None)
-    if repeater_arg == 1:
+    repeats = kwargs.pop('repeats', None)
+    if repeats == 1:
         return BasicWaveGeneratorFactory(func, *args, **kwargs)
-    return Repeater(BasicWaveGeneratorFactory(func, *args, **kwargs),
-        repeater_arg)
+    return Repeater(BasicWaveGeneratorFactory(func, *args, **kwargs), repeats)
+
+
+class TabledFunction:
+    """This class is used to precompute fuction values and store them in a table and then look up values
+    rather than compute the function.
+    
+    Args:
+        func: a function defined on [0,1]
+        power: a table (list) is constructed of size 2**power. The bigger power is the more accurate the calculation
+        is at the expense of consuming more space.
+
+    Attributes:
+        table_size: the size of the table (2**power)
+        table_size_1:  2**power-1
+        table: a list of precomputed values
+    """
+
+    def __init__(self, func, power):
+        """Args:
+        func: a function defined on [0,1]
+        power: a table (list) is constructed of size 2**power. The bigger power is the more accurate the calculation
+        is at the expense of consuming more space.
+        """
+        self.func = func
+        self.table_size = 2 ** power
+        self.table_size_1 = self.table_size - 1
+        self.table = []
+        for index in range(self.table_size):
+            self.table.append(self.func(index / self.table_size_1))
+
+    def __call__(self, x):
+        return self.table[round(x * self.table_size_1) & self.table_size_1]
 
 
 class Tester:

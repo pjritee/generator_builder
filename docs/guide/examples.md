@@ -58,7 +58,7 @@ tester = TimeoutTester(5.0)
 sequence = TakeWhile(
     tester,
     Repeater(Sequencer([
-        sine_wave_factory(20, repeater_arg=1), # one cycle of sine
+        sine_wave_factory(20, repeats=1), # one cycle of sine
         Constant(0.5, 50),  # Hold at 50% brightness for 50 steps
         Constant(0.0, 50),  # Turn off
     ]))
@@ -83,9 +83,9 @@ from waveforms import (
 
 # Create multiple pattern factories
 patterns = Chooser([
-    sine_wave_factory(50, repeater_arg=10),
-    square_wave_factory(20, repeater_arg=10),
-    sawtooth_wave_factory(30, repeater_arg=10),
+    sine_wave_factory(50, repeats=10),
+    square_wave_factory(20, repeats=10),
+    sawtooth_wave_factory(30, repeats=10),
 ])
 
 # Run 3 random selections
