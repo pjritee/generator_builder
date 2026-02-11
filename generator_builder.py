@@ -182,25 +182,25 @@ class Repeater[T](GeneratorFactory[T]):
 
     Args:
         factory: A generator factory.
-        repeater_arg: Arguments to determine repetition behavior.
+        repeats: Arguments to determine repetition behavior.
             - None: repeat indefinitely.
             - number: repeat that many times.
             - [min, max]: repeat a random number of times between min and max (inclusive).
 
     """
     def __init__(self, factory: Callable[[], Generator[T,None,None]], 
-                 repeater_arg: int | list[int] | None = None):
+                 repeats: int | list[int] | None = None):
         """Initialize the Repeater.
         
         Args:
             factory: A generator factory callable.
-            repeater_arg: Arguments to determine repetition behavior.
+            repeats: Arguments to determine repetition behavior.
                 - None: repeat indefinitely.
                 - number: repeat that many times.
                 - [min, max]: repeat a random number of times between min and max (inclusive).
         """
         self.factory = factory
-        self.repeater_arg = repeater_arg
+        self.repeats = repeats
     
     def _generate(self) -> Generator[T,None,None]:
         """Yield values from the generator, repeated according to the specified behavior.
@@ -210,17 +210,17 @@ class Repeater[T](GeneratorFactory[T]):
 
         Note that each repitition calls the factory producing a new generator.
         """
-        if self.repeater_arg is None:
+        if self.repeats is None:
             # Repeat indefinitely
             while True:
                 yield from self.factory()
-        elif isinstance(self.repeater_arg, int):
+        elif isinstance(self.repeats, int):
             # Repeat a fixed number of times
-            for _ in range(self.repeater_arg):
+            for _ in range(self.repeats):
                 yield from self.factory()
         else:
             # Repeat a random number of times between min and max
-            count = random.randint(self.repeater_arg[0], self.repeater_arg[1])
+            count = random.randint(self.repeats[0], self.repeats[1])
             for _ in range(count):
                 yield from self.factory()
 
@@ -413,23 +413,60 @@ def WaveGeneratorFactory[T](func: Callable[[float], T], *args, **kwargs) -> Gene
 
     This function provides a convenient interface for creating generator factories for waves 
     with various repetition behaviors. This factory is a BasicWaveGeneratorFactory wrapped in a Repeater factory.
-    If repeater_arg is given (defaults to prducing an infinite generator) it needs to be given as a keyword arg.
+    If repeats is given (defaults to prducing an infinite generator) it needs to be given as a keyword arg.
     The runs argument only needs to be set to anything other than the default of 1 if steps is chosen randomly as
     the repart part will take care of repition.
 
     Example:
-        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16, repeater_arg = 2)
+        >>> sine_wave = BasicWaveGeneratorFactory(sine_function, steps=16, repeats = 2)
         >>> gen = sine_wave()
         >>> values = list(gen)
         >>> len(values)
         32
     """
 
-    # Pop repeater_arg so as not to cause trouble for the call to BasicWaveGeneratorFactory
-    repeater_arg = kwargs.pop('repeater_arg', None) 
-    if repeater_arg == 1:   # no repeating
+    # Pop repeats so as not to cause trouble for the call to BasicWaveGeneratorFactory
+    repeats = kwargs.pop('repeats', None) 
+    if repeats == 1:   # no repeating
         return BasicWaveGeneratorFactory(func, *args, **kwargs)
-    return Repeater(BasicWaveGeneratorFactory(func, *args, **kwargs), repeater_arg)
+    return Repeater(BasicWaveGeneratorFactory(func, *args, **kwargs), repeats)
+
+class TabledFunction[T]:
+    """This class is used to precompute fuction values and store them in a table and then look up values
+    rather than compute the function.
+    
+    Args:
+        func: a function defined on [0,1]
+        power: a table (list) is constructed of size 2**power. The bigger power is the more accurate the calculation
+        is at the expense of consuming more space.
+
+    Attributes:
+        table_size: the size of the table (2**power)
+        table_size_1:  2**power-1
+        table: a list of precomputed values
+    """
+
+    def __init__(self, func:  Callable[[float], T], power:int):
+        """Args:
+        func: a function defined on [0,1]
+        power: a table (list) is constructed of size 2**power. The bigger power is the more accurate the calculation
+        is at the expense of consuming more space.
+        """
+
+        self.func = func
+        self.table_size = 2**power
+        self.table_size_1 = self.table_size-1
+        self.table = []
+        # Precompute the table: each index (integer value in [0, self.table_size-1]) is mapped to a value in [0,1]
+        # and the result of applying the function to that value is stored in the table at that index
+        for index in range(self.table_size):
+            self.table.append(self.func(index/(self.table_size_1)))
+            
+    def __call__(self, x):
+        # Given an x in [0,1], the index in the table is computed. If the computed index is outside the range
+        # (typically because of an offset calculation) the result is shifted by taking the value mod self.table_size-1
+        # (treating the function as cyclic)
+        return self.table[round(x*(self.table_size_1)) & (self.table_size_1)]
 
 
 class Tester:

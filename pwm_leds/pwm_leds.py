@@ -252,6 +252,10 @@ STEP_TIME = 10  # milliseconds per step
 # With STEP_TIME of 10ms, a sine wave of length 200 will have a period of about 2 seconds.
 index = 0
 num_controls = len(led_controls)
+############# uncomment the following for timing tests
+count = 0
+#############
+
 while True:
     start = time.ticks_ms()
     # calling the garbage collector on each loop stops the garbage collector kicking in
@@ -265,5 +269,13 @@ while True:
     
     for led, gen in led_controls[index]:
         led.duty_u16(float2u16(next(gen)))
+
+    ############ uncomment the following 4 lines for timing tests
+    delta = time.ticks_diff(time.ticks_ms(), start)
+    if delta > 8:
+        print(delta, count)
+        count = 0
+    ##########    
+    
     # Wait until the next step time
     time.sleep_ms( STEP_TIME + start - time.ticks_ms())

@@ -148,7 +148,7 @@ class GeneratorVisualizer:
 from waveforms import sine_wave_factory
 
 def get_generator():
-    gen_factory = sine_wave_factory(steps = (100,400), runs=2, repeater_arg=(50,100))
+    gen_factory = sine_wave_factory(steps = (100,400), runs=2, repeats=(50,100))
     return gen_factory()
 """
         self.code_editor.insert("1.0", example)

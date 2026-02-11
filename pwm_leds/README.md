@@ -39,7 +39,9 @@ Safety and troubleshooting
 **Timing and Memory Usage**
 
 The time for one iteration of the main loop of the program is determined by `STEP_TIME` (set to 10ms). The actual time needed is subtracted from `STEP_TIME` and that is the time the program sleeps for at the end of the loop. This maintains 
-a constant time per loop iteration as long as the computation time is less than `STEP_TIME`. Without calling the garbage collector directly the computation required for each iteraction is about 6ms but about every 1700ms the garbage collector 
-fires and that takes another 6-7ms pushing the time for that iteration above `STEP_TIME`.  
+a constant time per loop iteration as long as the computation time is less than `STEP_TIME`. 
 
-Calling the garbage collector directly on each iteration takes about 1-2ms taking the computation time to 7-8ms and frees up 2560 words. 
+The timing information below is based on running the first control set.
+
+Without calling the garbage collector directly the computation required for each iteraction is about 7-8ms but about every 1700ms the garbage collector fires and that takes another 6-7ms pushing the time for that iteration above `STEP_TIME`.  
+Calling the garbage collector directly on each iteration takes about 1-2ms taking the computation time to about 9ms. 

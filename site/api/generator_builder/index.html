@@ -111,9 +111,10 @@
 <li><code>Repeater[T]</code> - Repeats a generator for a specified number of times (the default is indefinitely)</li>
 <li><code>ProbabilityRepeater[T]</code> - Repeats a generator with specified probability</li>
 <li><code>SingleConstant[T]</code> - Yields a constant value once. Probably not useful directly (used inside the definition of <code>Constant</code>)</li>
-<li><code>Constant[T]</code> - Yields a constant a number of times specified by the <code>repeater_arg</code> value (default is indefinitely)</li>
+<li><code>Constant[T]</code> - Yields a constant a number of times specified by the <code>repeats</code> value (default is indefinitely)</li>
 <li><code>BasicWaveGeneratorFactory[T]</code> - Basic generator factory derived from a function with configurable discretization and offset</li>
 <li><code>WaveGeneratorFactory[T]</code> - A <code>BasicWaveGeneratorFactory[T]</code> wrapped in a <code>Repeater[T]</code> - similar to the way <code>Constant</code> is implemented.</li>
+<li><code>TabledFunction[T]</code> - Instead of repeatedly looking up function values (for example in the use of wave generators) objects from this class precomputes function values and puts them in a table and computing function values is replaced by table lookup.</li>
 <li><code>TakeWhile[T]</code> - Yields values while a test condition is true</li>
 </ul>
 <h2 id="tester-classes">Tester Classes<a class="headerlink" href="#tester-classes" title="Permanent link">&para;</a></h2>

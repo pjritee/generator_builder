@@ -167,35 +167,35 @@ if __name__ == "__main__":
     print("Testing float generators...")
     
     print("\n1. Testing sine wave:")
-    sine_gen = sine_wave_factory(steps=10, repeater_arg=1)  # (10//4)*4 = 8 steps
+    sine_gen = sine_wave_factory(steps=10, repeats=1)  # (10//4)*4 = 8 steps
     values = list(sine_gen())
     print(f"Sine wave (8 steps): {[round(v, 2) for v in values]}")
     assert len(values) == 8
     assert all(0.0 <= v <= 1.0 for v in values)
 
     print('\n2. Testing sine wave with step range:')
-    sine_rand = sine_wave_factory(steps=(4,16), repeater_arg=1)
+    sine_rand = sine_wave_factory(steps=(4,16), repeats=1)
     values = list(sine_rand())
     print(f'Sine wave output: {[round(v, 2) for v in values]}')
     assert 4 <= len(values) <= 16
     assert all(0.0 <= v <= 1.0 for v in values)
     
     print("\n3. Testing sawtooth wave:")
-    sawtooth_gen = sawtooth_wave_factory(10, repeater_arg=1) # (10//4)*4 = 8 steps
+    sawtooth_gen = sawtooth_wave_factory(10, repeats=1) # (10//4)*4 = 8 steps
     values = list(sawtooth_gen())
     print(f"Sawtooth wave output: {[round(v, 2) for v in values]}")
     assert len(values) == 8
     assert all(0.0 <= v <= 1.0 for v in values)
     
     print('\n4. Testing sawtooth wave with step range:')
-    sawtooth_rand = sawtooth_wave_factory(steps=(8,16), repeater_arg=1)
+    sawtooth_rand = sawtooth_wave_factory(steps=(8,16), repeats=1)
     values = list(sawtooth_rand())
     print(f'Sawtooth wave output: {[round(v, 2) for v in values]}')
     assert 8 <= len(values) <= 16
     assert all(0.0 <= v <= 1.0 for v in values) 
 
     print("\n5. Testing square wave:")
-    square_gen = square_wave_factory(steps=10, repeater_arg=1) # (10//4)*4 = 8 steps
+    square_gen = square_wave_factory(steps=10, repeats=1) # (10//4)*4 = 8 steps
     values = list(square_gen())
     print(f"Square wave output: {values}")
     assert len(values) == 8
@@ -205,7 +205,7 @@ if __name__ == "__main__":
     assert high_count == low_count
     
     print('\n6. Testing square wave with step range:')
-    square_rand = square_wave_factory(steps=(4,12), repeater_arg=1)
+    square_rand = square_wave_factory(steps=(4,12), repeats=1)
     values = list(square_rand())
     print(f'Square wave output: {values}')
     assert 4 <= len(values) <= 12
@@ -229,9 +229,9 @@ if __name__ == "__main__":
     
     print("\n9. Testing value ranges:")
     generators = [
-        ("Sine wave", sine_wave_factory(100, repeater_arg=1)),
-        ("Sawtooth wave", sawtooth_wave_factory(100, repeater_arg=1)),
-        ("Square wave", square_wave_factory(100, repeater_arg=1)),
+        ("Sine wave", sine_wave_factory(100, repeats=1)),
+        ("Sawtooth wave", sawtooth_wave_factory(100, repeats=1)),
+        ("Square wave", square_wave_factory(100, repeats=1)),
         ("Constant", gb.Constant(0.3)),
         ("ConstantFor", gb.Constant(0.7, 100))
     ]
@@ -246,29 +246,29 @@ if __name__ == "__main__":
         print(f"{name}: All values in [0,1]")
     
     print("\n10. Testing sine wave with offset:")
-    sine_offset_gen = sine_wave_factory(8, offset=0.75, repeater_arg=1)
+    sine_offset_gen = sine_wave_factory(8, offset=0.75, repeats=1)
     values = list(sine_offset_gen())
     print(f"Sine wave (8 steps, offset=0.75): {[round(v, 2) for v in values]}")
     assert len(values) == 8
     assert all(0.0 <= v <= 1.0 for v in values)
     
     print('\n11. Testing sawtooth wave with offset:')
-    sawtooth_offset_gen = sawtooth_wave_factory(8, offset=0.5, repeater_arg=1)
+    sawtooth_offset_gen = sawtooth_wave_factory(8, offset=0.5, repeats=1)
     values = list(sawtooth_offset_gen())
     print(f'Sawtooth wave (8 steps, offset=0.5): {[round(v, 2) for v in values]}')
     assert len(values) == 8
     assert all(0.0 <= v <= 1.0 for v in values)
     
     print("\n12. Testing square wave with offset:")
-    square_offset_gen = square_wave_factory(8, offset=0.75, repeater_arg=1)
+    square_offset_gen = square_wave_factory(8, offset=0.75, repeats=1)
     values = list(square_offset_gen())
     print(f"Square wave (8 steps, offset=0.75): {values}")
     assert len(values) == 8
     assert all(v in [0.0, 1.0] for v in values)
     
     print("\n13. Testing offset produces different values than non-offset:")
-    sine_no_offset = list(sine_wave_factory(8, repeater_arg=1)())
-    sine_with_offset = list(sine_wave_factory(8, offset=0.5, repeater_arg=1)())
+    sine_no_offset = list(sine_wave_factory(8, repeats=1)())
+    sine_with_offset = list(sine_wave_factory(8, offset=0.5, repeats=1)())
     assert sine_no_offset != sine_with_offset, "Offset should produce different values"
     print("Offset successfully produces different wave values")
     
