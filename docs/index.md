@@ -20,11 +20,11 @@ A small collection of generator-builder utilities and helpers for creating reusa
 ## Quick Start
 
 ```python
-from generator_builder import Constant, RepeaterFor, TakeWhile, CountTester
+from generator_builder import Constant, Repeater, TakeWhile, CountTester
 from waveforms import sine_wave_factory
 
 # Create a sine wave that cycles 3 times
-sine = sine_wave_factory(16, runs=3)
+sine = sine_wave_factory(16, runs=3, repeats=1)
 
 # Generate values
 for value in sine():

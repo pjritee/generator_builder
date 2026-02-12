@@ -120,11 +120,11 @@
 <li><strong>Well Documented</strong>: Comprehensive docstrings and examples</li>
 </ul>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">CountTester</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">Repeater</span><span class="p">,</span> <span class="n">TakeWhile</span><span class="p">,</span> <span class="n">CountTester</span>
 <span class="kn">from</span> <span class="nn">waveforms</span> <span class="kn">import</span> <span class="n">sine_wave_factory</span>
 
 <span class="c1"># Create a sine wave that cycles 3 times</span>
-<span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">sine</span> <span class="o">=</span> <span class="n">sine_wave_factory</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="n">runs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">repeats</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># Generate values</span>
 <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">sine</span><span class="p">():</span>
@@ -220,5 +220,5 @@
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2026-02-11 22:17:53.843622+00:00
+Build Date UTC : 2026-02-12 20:26:23.752582+00:00
 -->
