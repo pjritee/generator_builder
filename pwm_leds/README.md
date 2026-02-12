@@ -15,7 +15,10 @@ of the corresponding program in the RPi-Pico repository using the generator buil
 Key variables & behaviour (see implementation in [pwm_leds.py](pwm_leds/pwm_leds.py)):
 
 - `MAX_DUTY` / `float2u16()` — helper for mapping 0.0–1.0 floats to 16-bit PWM duty values.
-- `leds` — list of `PWM(Pin(...))` objects for the mapped pins; each is initialized to `freq(1000)`.
+- `TABLE_FUNCTION_POWER` - power used in the tabled functions
+- `tabled_sine_function` - a tabled version of `sine_function`
+- `tabled_sawtooth_function` - a tabled version of `sawtooth_wave_function`
+- `leds` — list of `PWM(Pin(...))` - objects for the mapped pins; each is initialized to `freq(1000)`.
 - `led_controls` — three control sets:
 	- randomized sequences using generator factories
 	- per-LED delayed sine waves
@@ -43,5 +46,9 @@ a constant time per loop iteration as long as the computation time is less than 
 
 The timing information below is based on running the first control set.
 
+Before changing to tabled functions:
+
 Without calling the garbage collector directly the computation required for each iteraction is about 7-8ms but about every 1700ms the garbage collector fires and that takes another 6-7ms pushing the time for that iteration above `STEP_TIME`.  
 Calling the garbage collector directly on each iteration takes about 1-2ms taking the computation time to about 9ms. 
+
+After changing to tabled functions the computation time is about 7ms.

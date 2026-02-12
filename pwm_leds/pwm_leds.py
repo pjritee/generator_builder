@@ -35,36 +35,16 @@ import waveforms_mp as wf
 import generator_builder_mp as gb
 import gc
 
+#########################################
+# General support for PWM on a Raspberry Pi Pico
+#########################################
+
+
 MAX_DUTY = 65535
-# Setup PWM for 16 LEDs on specified pins
-leds = [
-    PWM(Pin(0)),    # 0A   R
-    PWM(Pin(1)),    # 0B   Y   
-    PWM(Pin(2)),    # 1A   B 
-    PWM(Pin(3)),    # 1B   R 
-    PWM(Pin(4)),    # 2A   Y 
-    PWM(Pin(5)),    # 2B   B 
-    PWM(Pin(7)),    # 3B   R
-    PWM(Pin(8)),    # 4A   Y
-    PWM(Pin(9)),    # 4B   B 
-    PWM(Pin(13)),   # 6B   R
-    PWM(Pin(14)),   # 7A   Y
-    PWM(Pin(15)),   # 7B   B
-    PWM(Pin(28)),   # 6A   R
-    PWM(Pin(27)),   # 5B   Y 
-    PWM(Pin(26)),   # 5A   B 
-    PWM(Pin(22))    # 3A   R
-    ]
+TABLE_FUNCTION_POWER = 6
+# Setting the power to 4 in this application is too small as the steps in the function are visable for low brightness
+# Setting the power to 5 is boarderline
 
-red_leds = [leds[0], leds[3],leds[6],leds[9],leds[12],leds[15]]
-blue_leds = [leds[2],leds[5],leds[8],leds[11],leds[14]]
-yellow_leds = [leds[1],leds[4],leds[7],leds[10],leds[13]]
-            
-leds_array = [leds[0:4], leds[4:8], leds[8:12], leds[12:16]]
-
-# Initialize PWM frequencies
-for led in leds:
-    led.freq(1000)	
 
 # When running the program on the Pico it appears to the eye that half brightness is not half way
 # between off and full brightness. To compensate for this we can use a cubic mapping
@@ -116,7 +96,60 @@ else:
         else:
             return round(value * MAX_DUTY) # Linear mapping
 
-         
+
+# As we need to end up with a value in the range [0, MAX_DUTY] then the wave functions might as well map to that
+# range. Further, especially for the sine function, it makes sense to try using tabled functions.
+
+# Use a Tabled function - replaces wf.sine_wave_function
+tabled_sine_function = gb.TabledFunction(lambda x: float2u16(wf.sine_function(x)), TABLE_FUNCTION_POWER)
+def sine_wave_factory(*args, **kwargs):
+    return gb.WaveGeneratorFactory(tabled_sine_function, *args, **kwargs)
+
+# Use a Tabled function - replaces wf.sawtooth_wave_function
+tabled_sawtooth_function = gb.TabledFunction(lambda x: float2u16(wf.sawtooth_wave_function(x)), TABLE_FUNCTION_POWER) 
+def sawtooth_wave_factory(*args, **kwargs):
+    return gb.WaveGeneratorFactory(tabled_sawtooth_function, *args, **kwargs)
+
+# replace wf.square_wave_function - as there are only two values using a tabled function is not really necessary
+def square_wave_factory(*args, **kwargs) -> gb.GeneratorFactory:
+    return gb.WaveGeneratorFactory(lambda x: float2u16(wf.square_wave_function(x)), *args, **kwargs)
+
+# Note that, for Constants, we need to map them into the range [0, MAX_DUTY]
+
+#########################################
+
+# Code specifically for 16 PWM driven LEDs
+
+# Setup PWM for 16 LEDs on specified pins
+leds = [
+    PWM(Pin(0)),    # 0A   R
+    PWM(Pin(1)),    # 0B   Y   
+    PWM(Pin(2)),    # 1A   B 
+    PWM(Pin(3)),    # 1B   R 
+    PWM(Pin(4)),    # 2A   Y 
+    PWM(Pin(5)),    # 2B   B 
+    PWM(Pin(7)),    # 3B   R
+    PWM(Pin(8)),    # 4A   Y
+    PWM(Pin(9)),    # 4B   B 
+    PWM(Pin(13)),   # 6B   R
+    PWM(Pin(14)),   # 7A   Y
+    PWM(Pin(15)),   # 7B   B
+    PWM(Pin(28)),   # 6A   R
+    PWM(Pin(27)),   # 5B   Y 
+    PWM(Pin(26)),   # 5A   B 
+    PWM(Pin(22))    # 3A   R
+    ]
+
+red_leds = [leds[0], leds[3],leds[6],leds[9],leds[12],leds[15]]
+blue_leds = [leds[2],leds[5],leds[8],leds[11],leds[14]]
+yellow_leds = [leds[1],leds[4],leds[7],leds[10],leds[13]]
+            
+leds_array = [leds[0:4], leds[4:8], leds[8:12], leds[12:16]]
+
+# Initialize PWM frequencies
+for led in leds:
+    led.freq(1000)	 
+
 # Example generator sequences for each LED
 # A factory that creates a generator producing a sequence consisting of:
 #   - An initial delay of between 20 and 100 steps (random)
@@ -125,19 +158,16 @@ else:
 #       - A sine wave of length between 100 and 300 steps with a 70% chance of repeating
 #       - An 'on' generator for 50 steps with a 25% chance of repeating
 generator_factory = gb.Sequencer([
-    gb.Constant(0.0, (20,100)),
+    gb.Constant(float2u16(0.0), (20,100)),
     gb.Repeater(gb.Sequencer([
         # A random square wave whose length is between 50 and 100 steps, with a 20% chance of repeating
-        gb.ProbabilityRepeater(20, wf.square_wave_factory((50, 100))),
+        gb.ProbabilityRepeater(20, square_wave_factory((50, 100))),
         # A sine wave  whose length is between 100 and 300 steps, with a 70% chance of repeating
-        gb.ProbabilityRepeater(70, wf.sine_wave_factory((100, 300))),
+        gb.ProbabilityRepeater(70, sine_wave_factory((100, 300))),
         # An on generator for 50 steps with a 25% chance of repeating
-        gb.ProbabilityRepeater(25, gb.Constant(1.0, 50))
+        gb.ProbabilityRepeater(25, gb.Constant(float2u16(1.0), 50))
         ]))
     ])
-
-# A factory that creates a sine wave generator of length 200 steps
-sine_wave_factory_200 = wf.sine_wave_factory(200)
 
 # For the following generator we want to have the red LEDs follow a sine wave for a specified time with the other LEDs off.
 # Then we want the blue LEDs to follow the sine wave with the other LEDs off, and then the yellow LEDs to follow the sine wave with the other LEDs off.
@@ -197,11 +227,11 @@ def make_colour_testers() -> list[ColourTester]:
 
 colour_testers = make_colour_testers()
 timer_testers = make_timer_testers(5.0)  # Change colour every 5 seconds
-zero_factory = gb.Repeater(gb.Constant(0.0))
-repeating_sine_factory = wf.sine_wave_factory(200)
-repeating_sine_factory_offset = wf.sine_wave_factory(400, offset=0.75)
+zero_factory = gb.Repeater(gb.Constant(float2u16(0.0)))
+repeating_sine_factory = sine_wave_factory(200)
+repeating_sine_factory_offset = sine_wave_factory(400, offset=0.75)
 # Now we can define the generator factories for this behaviour
-def rgb_generator_factory(colour: int) -> gb.GeneratorFactory[float]: 
+def rgb_generator_factory(colour: int) -> gb.GeneratorFactory: 
     """Returns a generator factory that creates a generator that produces a sine wave
     when the specified colour is active and 0.0 otherwise."""
     
@@ -253,7 +283,7 @@ STEP_TIME = 10  # milliseconds per step
 index = 0
 num_controls = len(led_controls)
 ############# uncomment the following for timing tests
-count = 0
+#count = 0
 #############
 
 while True:
@@ -268,13 +298,14 @@ while True:
     # Step each control generator
     
     for led, gen in led_controls[index]:
-        led.duty_u16(float2u16(next(gen)))
+        led.duty_u16(next(gen))
 
-    ############ uncomment the following 4 lines for timing tests
-    delta = time.ticks_diff(time.ticks_ms(), start)
-    if delta > 8:
-        print(delta, count)
-        count = 0
+    ############ uncomment the following 5 lines for timing tests
+    # delta = time.ticks_diff(time.ticks_ms(), start)
+    # count += 1
+    # if delta > 6:
+    #     print(delta, count)
+    #     count = 0
     ##########    
     
     # Wait until the next step time
