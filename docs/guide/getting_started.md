@@ -50,7 +50,7 @@ This tests all waveform generators and validates output ranges.
 A **GeneratorFactory** is a callable object that creates fresh generators:
 
 ```python
-from generator_builder import ConstantFor
+from generator_builder import Constant
 
 # Create a factory - repeat 42 twice
 factory = Constant(42, 2)
@@ -69,7 +69,7 @@ print(list(gen2))  # [42, 42]
 Combine multiple factories to create complex behaviors:
 
 ```python
-from generator_builder import ConstantFor, RepeaterFor, Sequencer
+from generator_builder import Constant, Repeater, Sequencer
 
 # Create individual factories
 gen1 = Constant(1, 3)
