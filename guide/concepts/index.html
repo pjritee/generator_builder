@@ -154,14 +154,14 @@
 </ul>
 <h2 id="higher-order-factories">Higher-Order Factories<a class="headerlink" href="#higher-order-factories" title="Permanent link">&para;</a></h2>
 <p>Many classes are <strong>higher-order</strong> — they take generator factories as parameters and return new factories that combine them:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">RepeaterFor</span><span class="p">,</span> <span class="n">Sequencer</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">generator_builder</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">Repeater</span><span class="p">,</span> <span class="n">Sequencer</span>
 
 
 <span class="n">const</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> 
 
 
 <span class="c1"># Higher-order factory that repeatedly yields from const</span>
-<span class="c1"># This is a simple illustration - it could be more simply written as ConstantFor(1, 6)</span>
+<span class="c1"># This is a simple illustration - it could be more simply written as Constant(1, 6)</span>
 <span class="n">repeated</span> <span class="o">=</span> <span class="n">Repeater</span><span class="p">(</span><span class="n">const</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
 
