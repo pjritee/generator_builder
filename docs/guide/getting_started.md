@@ -90,7 +90,7 @@ Use built-in waveform generators to produce values from the waveform:
 from waveforms import sine_wave_factory
 
 # Create a sine wave with 16 steps per cycle
-sine = sine_wave_factory(16)
+sine = sine_wave_factory(16, repeats=1)
 
 # Generate values in [0, 1]
 for value in sine():

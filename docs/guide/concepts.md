@@ -32,14 +32,14 @@ This design allows you to:
 Many classes are **higher-order** — they take generator factories as parameters and return new factories that combine them:
 
 ```python
-from generator_builder import Constant, RepeaterFor, Sequencer
+from generator_builder import Constant, Repeater, Sequencer
 
 
 const = Constant(1, 2) 
 
 
 # Higher-order factory that repeatedly yields from const
-# This is a simple illustration - it could be more simply written as ConstantFor(1, 6)
+# This is a simple illustration - it could be more simply written as Constant(1, 6)
 repeated = Repeater(const, 3)
 
 
